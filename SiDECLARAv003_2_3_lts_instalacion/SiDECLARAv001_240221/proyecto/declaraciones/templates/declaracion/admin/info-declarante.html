@@ -1,0 +1,561 @@
+{% extends "layout/base.html" %}
+{% load static %}
+{% block header_title %}Información del usuario {% endblock %}
+{% load bootstrap4 %}
+{% load flujo_declaracion %}
+{% block header_style %}
+  <style>
+    .switch2 {
+      position: relative;
+      display: inline-block;
+      width: 45px;
+      height: 20px;
+    }
+
+    .switch2 input { 
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      -webkit-transition: .4s;
+      transition: .4s;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      -webkit-transition: .4s;
+      transition: .4s;
+    }
+
+    input:checked + .slider {
+      background-color: #417800;
+    }
+
+    input:focus + .slider {
+      box-shadow: 0 0 1px #2196F3;
+    }
+
+    input:checked + .slider:before {
+      -webkit-transform: translateX(26px);
+      -ms-transform: translateX(26px);
+      transform: translateX(26px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+      border-radius: 30px;
+    }
+
+    .slider.round:before {
+      border-radius: 50%;
+    }
+
+    [data-tip] {
+      position:relative;
+
+    }
+    [data-tip]:before {
+      content:'';
+      /* hides the tooltip when not hovered */
+      display:none;
+      content:'';
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-bottom: 5px solid #1a1a1a; 
+      position:absolute;
+      top:30px;
+      left:35px;
+      z-index:8;
+      font-size:0;
+      line-height:0;
+      width:0;
+      height:0;
+    }
+    [data-tip]:after {
+      display:none;
+      content:attr(data-tip);
+      position:absolute;
+      top:35px;
+      left:-125px;
+      padding:5px 8px;
+      background:#1a1a1a;
+      color:#fff;
+      z-index:9;
+      font-size: 0.75em;
+      height:100px;
+      line-height:18px;
+      -webkit-border-radius: 3px;
+      -moz-border-radius: 3px;
+      border-radius: 3px;
+      white-space:nowrap;
+      word-wrap:normal;
+      text-overflow: clip;
+      white-space: normal;
+      word-break: break-all;
+    }
+    [data-tip]:hover:before,
+    [data-tip]:hover:after {
+      display:block;
+    }
+  </style>
+{% endblock %}
+
+
+{% block content %}
+
+<section class="container">
+  <div class="row row-md mt-4 ">
+     <div class="col-2 ">
+         <a href="{% url 'declaracion:busqueda-declarantes' %}" class="btn btn-success text-uppercase font-weight-semibold mx-3"><img src="{% static 'src/img/regresar.png' %}"> Regresar</a>
+    </div>
+    <div class="col-6">
+        <h3 class="text-primary-light font-weight-semibold hyphen-auto">{% if tipo_registro == 'registrado' %} {{ result.nombre_completo|upper }} {% else %} {{result.first_name}} {{result.last_name}} {% endif %}</h3>
+    </div>
+  </div>
+  {% if tipo_registro == 'no_registrado' %}
+  <div class="row row-md" style="margin-top: 2rem;">
+    <div class="col-12 mb-6">
+      Este usuario solo se encuentra pre-registrado en el sistema
+    </div>
+  </div>
+  <div class="row row-md" style="margin-top: 2rem;">
+    <div class="col-6 mb-5">
+      <div class="pl-3 border-left text-dark mb-5">
+        <p>Estado :<strong> {% if result.is_active %} Activo {% else %} No Activo {% endif %} </strong> </p>
+        <p>Fecha registro :<strong>{{result.date_joined}}</strong> </p>
+        <p>Correo electrónico :<strong>{{result.email}} </strong> </p>
+        <p>RFC/Username :<strong> {{result.username}} </strong> </p>
+      </div>
+    </div>
+  </div>
+  
+  {% else %}
+
+    {% if not result.usuario.is_active %}
+      <div class="row row-md" style="margin-top: 2rem;background-color: #c3d6da;">
+        <div class="col-12 mb-6">
+          Este usuario se encuentra dado de baja
+        </div>
+      </div>
+    {% endif %}
+    <div class="row row-md" style="margin-top: 2rem;">
+      <div class="col-6 mb-5">
+        <div class="pl-3 border-left text-dark mb-5">
+          <p> Fecha de inicio: <strong class="text-black text-dynamic">{{ result.fecha_inicio|date:"D d M Y"|default_if_none:"----"}}</strong></p>
+          <p> RFC: <strong class="text-black text-dynamic">{{ result.rfc|default_if_none:"----"}}</strong></p>
+          <p> Puesto: <strong class="text-black text-dynamic">{{ result.cat_puestos |default_if_none:"----"}}</strong></p>
+          <p> Honorarios: <strong class="text-black text-dynamic">{{ cargo.honorarios|yesno:"Si,No,Desconocido"|default_if_none:"----" }}</strong></p>
+        </div>
+      </div>
+      <div class="col-6 mb-5">
+        <div class="card">
+          <div class="card-body">
+            <b>AVISO</b> <br>
+            El formato PDF generado desde este modulo, será creado con los datos publicos independientemente de la decisión que el declarante tomó al cerrar su declaración, por lo que es responsablidad del usuarios OIC/Administrador el manejo del mismo
+          </div>
+        </div>
+        </div>
+    </div>
+    <div class="row row-md">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">FOLIO</th>
+            <th scope="col">ESTADO</th>
+            <th scope="col">AVANCE</th>
+            <th scope="col">FECHA DE INICIO</th>
+            <th scope="col">FECHA DE FIRMA</th>
+            <th scope="col">TIPO</th>
+            <th scope="col">EXTEMPORANEA</th>
+            <th scope="col">VER</th>
+            <th scope="col">FORMATO PDF</th>
+            <th scope="col">ACUSE</th>
+
+          </tr>
+        </thead>
+        <tbody>
+        {% if declaraciones %}
+          {% for ds in declaraciones %}
+            <tr>
+              <td scope="row">{{ ds.folio |default_if_none:"----"}}</td>
+              <td>{{ ds.cat_estatus |default_if_none:"----" }}</td>
+              <td>{{ ds.avance |default_if_none:"----" }}%</td>
+              <td>{{ ds.fecha_declaracion |default_if_none:"----" }}</td>
+              <td>{{ ds.fecha_recepcion |default_if_none:"----" }}</td>
+              <td>{{ ds.cat_tipos_declaracion.codigo |default_if_none:"----" }}</td>
+              <td {% if ds.cat_estatus.pk == 4 %} data-tip="Al cambiar el estado de la declaración, se debe volver a generar el PDF en la opción GENERAR icono de descarga en la columna FORMATO PDF" {% endif%} >
+                {% if ds.cat_estatus.pk == 4 %}
+                  <label class="switch2" id="label_dato_publico_{{ds.pk}}">
+                    <input 
+                      type="checkbox" 
+                      class="swtich_extemporanea" 
+                      id="checkbox_extemporanea_{{ds.pk}}" 
+                      {% if ds.extemporanea %} checked {% endif %}
+                      declaracion_pk="{{ds.pk}}"
+                      declaracion_folio="{{ds.folio}}"
+                      declaracion_tipo="{{ds.cat_tipos_declaracion.codigo}}"
+                    >
+                    <span class="slider round" id="span_dato_publico_{{ds.dato_publico}}"></span>
+                  </label>
+                {% endif %}
+              </td>
+              <td><a href="{%  url 'declaracion:info-declaracion' ds.pk 'declarante' %}"><img width="40px" src="{% static 'src/img/see_verde.png' %}"></a></td>
+              <td id="{{ds.pk}}_td_pdf">
+                {% if ds.cat_estatus.pk == 4 %}
+                  <button class="btn_declaracion_publica btn btn-link" declaracion="{{ds.pk}}" id="{{ds.pk}}_declaracion_publica" type="button"><img width="40px" src="{% static 'src/img/impresora.svg' %}"></button>
+                {% else %}
+                  N/A
+                {% endif %}
+              </td>
+              <td>{% if ds.cat_estatus.pk is 4%}<a href="{%  url 'pdf_confimacion' ds.pk %}" target="blank"> <img width="40px" src="{% static 'src/img/approve.png' %}"></a>{% else %} N/A {% endif %}</td>
+
+            </tr>
+          {% endfor %}
+        {% else%}
+          <tr>
+            <td colspan="10" style="text-align: center !important;background: #e6f3bd;">
+              <h5 style="color: #417505;">Este declarante aún no ha generado una declaración</h5>
+            </td>
+          </tr>
+        {%endif%}
+        </tbody>
+      </table>
+    </div>
+
+  {% endif %}
+</section>
+<div class="modal fade" id="datosPublicosModal" tabindex="-1" role="dialog" aria-labelledby="datosPublicosModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="datosPublicosModalLabel">DECLARACIÓN EXTEMPORANEA</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+         <!--Contenido dinámico de la declaración a la que se le hará el cambio-->
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btn_aceptar_cambio_extemporanea" style="background: #a3b34c;border-color: #a3b34c;width: 40%;" class="btn btn-primary">Aceptar</button>
+            <button type="button" class="btn btn-secondary" style="background: #046076;border-color: #046076;width: 40%;"  data-dismiss="modal">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block body_script %}
+<script>
+
+function ajax_success_declaracion(response,data, object_div_progress, intervalId){
+    object_div_progress.empty();
+
+    if(response["estatus_proceso"] == 100){
+      clearInterval(intervalId);
+
+      console.log("object_div_progress---------------->", object_div_progress)
+
+      object_div_progress.append('<button class="btn_declaracion_publica btn btn-link" declaracion="'+data['declaracion']+'" id="'+data['declaracion']+'_declaracion_publica" type="button"><img width="40px" src='+"{% static 'src/img/impresora.svg' %}"+'></button>');
+      object_div_progress.parent().append('<a hidden id="'+data['declaracion']+'_pdf_publico" href="'+response["archivo"]+'" target="_blank"><i class="fas fa-eye"></i>&nbsp;</a>');
+
+      $.ajax({
+        url : "{% url 'eliminar_pdf_declaracion' %}",
+        data: data,
+        type : "GET",
+        success : function(response_delete) {              
+          console.log("Eliminar",response_delete )
+          $('#'+data['declaracion']+'_pdf_publico')[0].click();
+        },
+        error : function(xhr,errmsg,err) {
+          console.log(xhr.status + ": " + xhr.responseText);
+        }
+      });
+    }
+    else{
+      var estatus_actual = response["estatus_proceso"] == "None" || !response["estatus_proceso"] ? 10 : response["estatus_proceso"]
+      object_div_progress.append('<div class="progress" style="width: 100%; height: 40px;">'+
+        '<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="'+estatus_actual+'"'+
+        'aria-valuemin="0" aria-valuemax="100" style="width:'+estatus_actual+'%">'+estatus_actual+'%</div></div>');
+    }
+  }
+
+  function ajax_peticion(data, object_dom, url){
+    var intervalId = window.setInterval(function(){
+      $.ajax({
+            url : url,
+            data: data,
+            type : "GET",
+            success : function(response) {
+              console.log("response----->",response)
+              ajax_success_declaracion(response,data, object_dom, intervalId);
+            },
+            error : function(xhr,errmsg,err) {
+              console.log(xhr.status + ": " + xhr.responseText);
+            }
+        });
+    }, 4000); 
+  }
+
+  function ajax_crear_pdf(data, object_dom){
+    $.ajax({
+          url : "{% url 'crear_pdf_declaracion' %}",
+          data: data,
+          type : "GET",
+          success : function(response) {      
+            var estatus_actual = response["estatus_proceso"] == "None" || !response["estatus_proceso"] ? 10 : response["estatus_proceso"]
+            
+            object_dom.empty();
+            object_dom.append('<center><div class="progress" style="width: 100%; height: 40px;">'+
+                '<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="'+estatus_actual+'"'+
+                'aria-valuemin="0" aria-valuemax="100" style="width:'+estatus_actual+'%">'+estatus_actual+'%</div></div></center>');
+            
+            if(estatus_actual && estatus_actual != 100){
+              ajax_peticion(data, object_dom, "{% url 'estatus_pdf_declaracion' %}");
+            }
+
+          },
+          error : function(xhr,errmsg,err) {
+            console.log(xhr.status + ": " + xhr.responseText);
+          }
+      });
+  }
+    
+
+  function btn_click_declaracion_publica(this_){
+    var elemento = $(this_);
+    var id_declaracion = elemento.attr("declaracion");
+    var td_btn_pdf = elemento.parent();
+    var data = {
+      "declaracion": elemento.attr("declaracion"),
+      "publica": true
+    }
+    td_btn_pdf.empty()
+    td_btn_pdf.append('<div class="progress" style="width: 100%; height: 40px;"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="10"'+
+              'aria-valuemin="0" aria-valuemax="100" style="width:10%">10%</div></div>');
+
+    ajax_crear_pdf(data, td_btn_pdf);
+  }
+
+  $(".btn_declaracion_publica").click(function(e){
+    btn_click_declaracion_publica($(this));
+  });
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
+
+
+  function ajax_success_declaracion_extemporanea(response_extemporanea, data, check_switch){
+    if(response_extemporanea["succes"]){
+      var td_btn_declaracion = $("#"+data["id_declaracion_extemporanea"]+"_td_pdf");
+      
+      //Cambia la visualmente el switch 
+      check_switch.prop('checked', !check_switch.prop('checked'));
+      //Oculta el modal
+      $('#datosPublicosModal').modal('hide');
+
+      //Se ejecuta petición para generar de nuevo el PDF
+      if(response_extemporanea["archivo"]){
+        //Bloqueamos el switch hasta que el proceso del pdf termine
+        check_switch.prop( 'disabled', true); 
+        td_btn_declaracion.empty();
+        td_btn_declaracion.append('<div class="progress" style="width: 100%; height: 50px;">'+
+        '<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="10"'+
+        'aria-valuemin="0" aria-valuemax="100" style="width:10%">10%</div></div>');
+
+        ajax_crear_pdf({"declaracion": data["id_declaracion_extemporanea"]}, td_btn_declaracion);
+      }
+    }
+  }
+  
+  function ajax_peticion(data, object_dom, url){
+    var intervalId = window.setInterval(function(){
+      $.ajax({
+            url : url,
+            data: data,
+            type : "GET",
+            success : function(response) {   
+              if(data["tipo_reporte"]){
+                console.log('tipo reporte------>', data["tipo_reporte"])
+                ajax_success_reporte(response, data,object_dom,intervalId);
+              }
+              else if(data["declaracion"]){
+                ajax_success_declaracion(response,data, object_dom, intervalId);
+              }
+              else if (data["id_declaracion_extemporanea"]){
+                clearInterval(intervalId);
+                $("#btn_aceptar_cambio_extemporanea").prop( "disabled", false); //Desblqueamos btn aceptar del modal
+                ajax_success_declaracion_extemporanea(response,data, object_dom);
+              }
+            },
+            error : function(xhr,errmsg,err) {
+              console.log(xhr.status + ": " + xhr.responseText);
+            }
+        });
+    }, 6000); 
+  }
+
+  function a_click_declaracion_sin_pdf(this_){
+    var elemento = $(this_);
+
+    var id_declaracion = elemento.attr("declaracion");
+    var td_btn_pdf = elemento.parent().parent();
+    var data = {
+      "declaracion": elemento.attr("declaracion")
+    }
+
+    td_btn_pdf.empty()
+    td_btn_pdf.append('<div class="progress" style="width: 100%; height: 50px;"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="10"'+
+              'aria-valuemin="0" aria-valuemax="100" style="width:10%">10%</div></div>');
+
+    $("#checkbox_dato_publico_"+data["declaracion"]).prop('disabled', true); 
+    ajax_crear_pdf(data, td_btn_pdf);
+  }
+
+  $("#form_declaraciones_reporte").submit(function(e){
+    var div_progress_bar = $(".div_progress")
+    var fields_form = $(this).serializeArray();
+    var data = {
+      "tipo_reporte": document.activeElement.getAttribute('tipo_reporte')
+    }
+
+    jQuery.each(fields_form, function( i, field ) {
+      data[field.name] = field.value;
+    });
+
+    data["filtro_fecha"] = $('input[name=filtro_fecha]:checked', '#form_declaraciones').val();
+
+    $.ajax({
+        url : "{% url 'declaracion:crear_reporte' %}",
+        data: data,
+        type : "GET",
+        success : function(response) {
+          var estatus_actual = response["estatus_proceso"] == "None" || !response["estatus_proceso"] ? 10 : response["estatus_proceso"]
+
+          if(estatus_actual){
+            
+            $('#ventana-modal').modal('toggle');
+            div_progress_bar.empty()
+  
+            div_progress_bar.append('<div class="progress" style="width: 100%; height: 50px;"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="'+response["estatus_proceso"]+'"'+
+              'aria-valuemin="0" aria-valuemax="100" style="width:'+response["estatus_proceso"]+'%">'+response["estatus_proceso"]+'%</div></div>');
+            
+            if(estatus_actual != 100){
+              ajax_peticion(data, div_progress_bar, "{% url 'declaracion:consultar_estatus_reporte' %}");
+            }
+          }
+        },
+        error : function(xhr,errmsg,err) {
+          console.log(xhr.status + ": " + xhr.responseText);
+        }
+    });
+
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  $(".a_declaracion_sin_pdf").click(function(e){
+    a_click_declaracion_sin_pdf($(this));
+  });
+  
+  $('.swtich_extemporanea').on('click', function(event) {
+    var check_switch = $(this);
+    //Se priviene el cambio del swtich hasta que el usuario seleccione si el cambio se hará o no
+    setTimeout(function() {
+      check_switch.removeAttr('checked');
+    }, 0);
+
+    event.preventDefault();
+    event.stopPropagation();
+  
+    var checked_dato_publico = check_switch.is(':checked');
+    var body_modal = $("#datosPublicosModal .modal-body");
+    var info_declaracion = {
+      "id": check_switch.attr("declaracion_pk"),
+      "folio": check_switch.attr("declaracion_folio"),
+      "tipo": check_switch.attr("declaracion_tipo")
+    }
+
+    body_modal.empty();
+    body_modal.append('<dl class="row">'+
+      '<dt class="col-sm-9">Declaración</dt>'+
+      '<dd class="col-sm-9">'+info_declaracion.tipo+'</dd>'+
+      '<dt class="col-sm-9">Folio</dt>'+
+      '<dd class="col-sm-9">'+info_declaracion.folio+'</dd>'+
+      '<dt class="col-sm-9">Extemporanea</dt>'+
+      '<dd class="col-sm-9"> '+  (checked_dato_publico ? 'No' : 'Si') +' </dd>'+
+      '<dt class="col-sm-9">Cambio de extemporanea a: </dt>'+
+      '<dd class="col-sm-9">'+ (checked_dato_publico ? 'Si' : 'No') +'</dd>'+
+      '</dl>'+
+      '<center><h3>¿Desea aplicar cambio?</h3></center>')
+
+    body_modal.next().children()[0].setAttribute("declaracion",info_declaracion.id);
+    body_modal.next().children()[0].setAttribute("id_switch_dato_publico",check_switch.attr("id"));
+
+    $('#datosPublicosModal').modal({
+      show: true
+    })
+ });
+
+  $("#btn_aceptar_cambio_extemporanea").click(function(e){
+    var this_btn = $(this);
+    
+    $("#datosPublicosModal .modal-body").append('<center><button class="btn btn-primary" style="width: 100%; background-color: #015F78;" type="button" disabled>'+
+        '<span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>'+
+        ' Cargando... </button><p><br> Si la declaración ya tenía un PDF generado, al terminar el proceso se generará el nuevo PDF de manera automática</p></center>'
+    );
+    var check_switch = $("#"+this_btn.attr("id_switch_dato_publico"));
+    var data_extemporanea = {
+      "id_declaracion_extemporanea": this_btn.attr("declaracion")
+    }
+
+    this_btn.prop( "disabled", true);
+    ajax_peticion(data_extemporanea, check_switch, "{% url 'declaracion:cambiar_extemporanea' %}")
+
+  });
+
+ 
+
+</script>
+{% endblock %}

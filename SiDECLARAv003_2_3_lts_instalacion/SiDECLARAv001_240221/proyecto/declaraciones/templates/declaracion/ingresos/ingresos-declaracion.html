@@ -1,0 +1,1783 @@
+{% extends "layout/base.html" %}
+{% load static %}
+{% block header_title %}Ingresos{% endblock %}
+{% load bootstrap4 %}
+{% load flujo_declaracion %}
+{% block content %}
+<div class="container-fluid h-100">
+    <div class="row h-100">
+        {% include 'layout/sidebar.html' %}
+        <div class="col-md-9">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb text-sm text-uppercase font-weight-extralight">
+                    <li class="breadcrumb-item"><a href="#" class="text-reset">Declaración en curso</a></li>
+                    <li class="breadcrumb-item"><a href="#" class="text-reset">Declaración patrimonial</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Declaración patrimonial</li>
+                </ol>
+            </nav>
+            <h1 class="text-uppercase text-black h5">Declaración de intereses y patrimonial <span class="text-primary">{% tipo_declaracion %}</span></h1>
+            <h2 class="h6 mb-3 text-uppercase">8. Declaración patrimonial <span class="text-black mx-1">|</span> 
+                <span class="text-primary font-weight-light">{% if current_url_seccion == 'ingresos-netos'%}
+                    {% if declaracion.cat_tipos_declaracion.codigo == "INICIAL" %}VIII. INGRESOS NETOS DEL DECLARANTE, PAREJA Y/O DEPENDIENTES ECONÓMICOS(SITUACIÓN ACTUAL){% endif %}
+                    {% if declaracion.cat_tipos_declaracion.codigo == "MODIFICACIÓN" %}VIII. INGRESOS NETOS DEL DECLARANTE, PAREJA Y/O DEPENDIENTES ECONÓMICOS(ENTRE EL 1 DE ENERO Y 31 DE DICIEMBRE DEL AÑO INMEDIATO ANTERIOR){% endif %}
+                    {% if declaracion.cat_tipos_declaracion.codigo == "CONCLUSIÓN" %}VIII. INGRESOS NETOS DEL AÑO EN CURSO A LA FECHA DE CONCLUSIÓN DEL EMPLEO, CARGO O COMISIÓN DEL DECLARANTE, PAREJA Y/O DEPENDIENTE ECONÓMICOS{% endif %}                 
+                    {% else %}IX. ¿TE DESEMPEÑASTE COMO SERVIDOR PÚBLICO EN EL AÑO ANTERIOR?
+                    {% endif %}
+                </span>
+            </h2>            
+
+            {% if messages %}
+                {% for message in messages %}
+                        <div class="alert alert-danger alert-dismissable alert-link">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                             <strong>{{ message }}</strong>
+                        </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if folio_declaracion %}
+              {% if current_url_seccion == 'ingresos-netos' %}
+                <form class="block_submit" action="{% url 'declaracion:ingresos-netos' folio_declaracion %}" method="post">
+              {% else %}
+                <form class="block_submit" action="{% url 'declaracion:ingresos-servidor-publico' folio_declaracion %}" method="post">
+              {% endif %}
+            {% endif %}
+            {% csrf_token %}
+
+                <div class="row row-form" style="{% if checked %}display: none;{% endif %}">
+                    {% if current_url_seccion == 'ingresos-servidor-publico'%}
+                    <div class="col-md-12">
+                        {% for k, message in ingresos_declaracion_forms.errors.items %}
+                            <div style="background: #d46f6f;color: #fff;padding-top: 5px;">
+                                <h5>{{ message }}</h5>
+                            </div>
+                        {% endfor %}  
+                        <label class="label-secondary">¿TE DESEMPEÑASTE COMO SERVIDOR PÚBLICO EN EL AÑO ANTERIOR?{% if 'ingreso_anio_anterior' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                        <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999"  title="Se deberá elegir sí o no es que fue servidor público de cualquier orden de gobierno (federal, local o municipal).">
+                            <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                        </button>
+                        <div class="row">
+
+                            <div class="col-md-4">
+                                <div class="custom-control custom-radio custom-control-inline radio-secondary">
+                                    <input type="radio" id="ingreso_anio_anterior-si" name="ingreso_declaracion-ingreso_anio_anterior" value="True" class="custom-control-input" {% if not ingresos_declaracion_forms.ingreso_anio_anterior.initial %}checked{% endif %}  {% if ingresos_declaracion_forms.ingreso_anio_anterior == True %}checked{% endif %} onclick="accion_hide_disabled_show(this);">
+                                    <label class="custom-control-label text-rg" for="ingreso_anio_anterior-si">Si</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="custom-control custom-radio custom-control-inline radio-secondary">
+                                    <input type="radio" id="ingreso_anio_anterior-no" name="ingreso_declaracion-ingreso_anio_anterior" value="False" class="custom-control-input" {% if ingresos_declaracion_forms.ingreso_anio_anterior == False %}checked{% endif %} onclick="accion_hide_disabled_show(this);">
+                                    <label class="custom-control-label text-rg" for="ingreso_anio_anterior-no">No</label>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-md-12"><br></div>                    
+                    <div class="col-md-4 fechas_anio_anterior">
+                        <div class="form-group {% if 'fecha_ingreso' in campos_privados %}form-group-private{% endif %}">
+                             {% bootstrap_label "Fecha inicio" label_for="fecha_ingreso" label_class="label-secondary"%}{% if 'fecha_ingreso' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}
+                             <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999"  title="Fecha de ingreso.">
+                                 <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                             </button>
+                             {% bootstrap_field ingresos_declaracion_forms.fecha_ingreso placeholder="Fecha ingreso" field_class="fecha" show_label=False%}
+
+                        </div>
+                    </div>
+                    <div class="col-4 fechas_anio_anterior">
+                        <div class="form-group {% if 'fecha_conclusion' in campos_privados %}form-group-private{% endif %}">
+                             {% bootstrap_label "Fecha conclusión" label_for="fecha_conclusion" label_class="label-secondary"%}{% if 'fecha_conclusion' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}
+                             <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999"  title="Fecha de conslusion.">
+                                 <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                             </button>
+                             {% bootstrap_field ingresos_declaracion_forms.fecha_conclusion placeholder="Fecha inicio" field_class="fecha" show_label=False%}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="col-8 fechas_anio_anterior">
+                      <div class="form-group {% if 'ingreso_mensual_cargo' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">I.-{% if current_url_seccion == 'ingresos-netos' %}REMUNERACIÓN {% if declaracion.cat_tipos_declaracion.codigo == "INICIAL" %} MENSUAL {% else %} ANUAL {% endif %} NETA DEL DECLARANTE POR SU CARGO PÚBLICO(POR CONCEPTO DE SUELDOS, HONORARIOS, COMPENSACIONES, BONOS Y PRESTACIONES)(CANTIDADES NETAS DESPUES DE IMPUESTOS){% else %}RENUMERACIÓN NETA DEL DECLARANTE, RECIBIDA DURANTE EL TIEMPO QUE DESEMPEÑO COMO SERVIDOR PUBLICO EN EL AÑO INMEDIATO ANTERIOR (POR CONCEPTO DE SUELDOS, HONORARIOS, COMPENSACIONES, BONOS, AGUINALDOS Y OTRAS PRESTACIONES)(CANTIDADES NETAS DESPUÉS DE IMPUESTOS){% endif %}{% if 'ingreso_mensual_cargo' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Es el ingreso neto que recibe el Declarante incluyendo bobnos, compensaciones y otras prestaciones, se recomienda manifestar la cantidad que se encuentra en su  recibo de nómina">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_declaracion_forms.ingreso_mensual_cargo placeholder="Ingreso cargo público" show_label=False%}
+                        </div>
+                    </div>
+                    <div class="col-4 fechas_anio_anterior">
+                      <div class="form-group {% if 'cat_moneda_cargo' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">{% if current_url_seccion == 'ingresos-netos'%}MONEDA DEL INGRESO POR CARGO PUBLICO DEL DECLARANTE{% else %}MONEDA DEL INGRESO POR CARGO PUBLICO QUE DESEMPEÑO COMO SERVIDOR PUBLICO EN EL AÑO INMEDIATO ANTERIOR{% endif %}{% if 'cat_moneda_cargo' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Indicar moneda.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_declaracion_forms.cat_moneda_cargo placeholder="Moneda" show_label=False%}
+                        </div>
+                    </div>
+
+                    <div class="col-8 fechas_anio_anterior">
+                      <div class="form-group {% if 'ingreso_mensual_otros_ingresos' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">II.-{% if current_url_seccion == 'ingresos-netos' %}OTROS INGRESOS {% if declaracion.cat_tipos_declaracion.codigo == "INICIAL" %} MENSUALES {% else %} ANUALES {% endif %}DEL DECLARANTE(SUMA DEL II.1 AL II.4){% else %}OTROS INGRESOS DEL DECLARANTE, RECIBIDOS DURANTE EL TIEMPO EN EL QUE SE DESEMPEÑO COMO SERVIDOR PÚBLICO EN EL AÑO ANTERIOR INMEDIATO ANTERIOR (SUMA DEL II.1 AL II.5){% endif %}{% if 'ingreso_mensual_otros_ingresos' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="ESTE CAMPO SE LENARÁ AUTOMATICAMENTE.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_declaracion_forms.ingreso_mensual_otros_ingresos placeholder="ESTE CAMPO SE LENARÁ AUTOMATICAMENTE" show_label=False%}
+                        </div>
+                    </div>
+                    <div class="col-4 fechas_anio_anterior">
+                      <div class="form-group {% if 'cat_moneda_otro_ingresos_mensual' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">{% if current_url_seccion == 'ingresos-netos' %}MONEDA DE OTROS INGRESOS{% else %}MONEDA DE OTROS INGRESOS DEL DECLARANTE EN EL AÑO ANTERIOR INMEDIATO{% endif %}{% if 'cat_moneda_otro_ingresos_mensual' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %} </label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Indicar moneda.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_declaracion_forms.cat_moneda_otro_ingresos_mensual placeholder="Moneda" show_label=False%}
+                        </div>
+                    </div>
+
+                 
+                    <!-- INGRESOS ACTIVIDAD -->
+                    <div class="col-12">
+                        <div id="success-industrial" class="alert alert-success alert-dismissible fade show" role="alert" style="display:none;">
+                            <p></p>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div id="error-industrial" class="alert alert-danger alert-dismissible fade show" role="alert" style="display:none;">
+                            <p></p>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+                     <div class="col-12 fechas_anio_anterior" style="border: solid #d8d3d3 0.5px;padding: 1rem;margin:1rem 0 1rem 0;">
+                        <div class="row">
+
+                            <div class="col-md-6">
+                                <label for="cargo-municipio" class="label-secondary">
+                                      II.1 POR ACTIVIDAD INDUSTRIAL,COMERCIAL Y/O EMPRESARIAL (DESPUÉS DE IMPUESTOS)
+                                </label>
+                            </div>
+                            <div class="col-md-6 d-flex flex-row-reverse">
+
+                                <button type="button"  id="plus_buttonAct"class="btn btn-link btn-link-plus text-success font-weight-semibold text-uppercase"name="boton" style="background: #cce3e4;margin-bottom: 0.5rem;"value='+ Añadir ingreso por servicio'onclick="show_formAct()"><img src="/static/src/img/plus.svg" alt="agregar" class="svg"> Agregar otro
+                                 </button>
+                            </div>
+                        </div>
+                    <table class="table table-striped" id="tab_act"style="border: solid #e2dddd 0.5px;">
+
+                        <thead>
+                            <tr>
+                                <th>Monto por actividad industrial, comercial y/o empresarial</th>
+                                <th>Moneda</th>
+                                <th>Razón social</th>
+                                <th>Tipo de negocio</th>
+                                <th colspan="2">Acciones</th>
+                            </tr>
+                        </thead>
+                         <tbody>   
+
+                    {%if ingresos_actividad_extra_data %} 
+
+
+                        {% for ingreso in ingresos_actividad_extra_data %}
+                            {%if ingreso.ingreso_mensual_actividad %} 
+
+                        <tr id="{{ingreso.id}}_row">
+                            <td class='monto'>${{ingreso.ingreso_mensual_actividad}}</td>
+                            <td class='moneda'>{{ingreso.cat_moneda_actividad}}</td>
+                            <td class='razon_social'>{{ingreso.razon_social_negocio}} </td>
+                            <td class='tipo_negocio'>{{ingreso.tipo_negocio}}</td>
+                            <td>
+                                 <button id="{{ingreso.id}}_editar" class="btn btn-link btn-link-plus editButonsAct" type="button" tipo_negocio="{{ingreso.tipo_negocio}}" razon_social="{{ingreso.razon_social_negocio}}" moneda="{{ingreso.cat_moneda_actividad.id}}" monto="{{ingreso.ingreso_mensual_actividad}}" onclick="editarIngresoAct({{ingreso.id}})"><div name="divPersonaEditar"><img src="/static/src/img/editar.svg" class="svg"></div></button>
+
+                            </td>
+                            <td>
+                                <button id="{{ingreso.id}}_eliminar" class="btn btn-link btn-link-plus deleteButonsAct" type="button" onclick="eliminarIngreso({{ingreso.id}}, 'AC')"><div name="divPersonaEliminar"><img src="/static/src/img/eliminar.svg" class="svg"></div></button>
+                            </td>
+                        </tr>
+                              {% endif %}
+                        {% endfor %}  
+                    {%endif%}
+                          <tr id="no_data_act">
+                            <td colspan="6">NO HAY DATOS PARA MOSTRAR</td>
+                          </tr>
+                        
+
+                        </tbody>
+                    </table>
+                        
+                    <div class="col-12 fechas_anio_anterior">
+                      <div id='formActPlus' class="row">
+                        <div class="col-8 fechas_anio_anterior">
+                            <input type="number" id="id_ingreso_actividad" hidden>
+                      <div class="form-group">
+                            <label class="label-secondary">II.1 POR ACTIVIDAD INDUSTRIAL,COMERCIAL Y/O EMPRESARIAL (DESPUÉS DE IMPUESTOS)</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Señalar el monto neta por algunade las actividades descritas">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_actividad_extra.ingreso_mensual_actividad placeholder="Monto de ingresos por actividad industrial, comercial y/o empresarial" show_label=False%}
+                        </div>
+                    </div>
+                    <div class="col-4 fechas_anio_anterior">
+                      <div class="form-group">
+                            <label class="label-secondary">MONEDA POR ACTIVIDAD INDUSTRIAL</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Indicar moneda.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_actividad_extra.cat_moneda_actividad placeholder="Moneda" show_label=False%}
+                        </div>
+                    </div>
+
+                    <div class="col-6 fechas_anio_anterior">
+                      <div class="form-group ">
+                            <label class="label-secondary">RAZÓN SOCIAL</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Proporcionar el nombre, razón social o denominación del negocio, en el cual se lleva a cabo la actividad o algun a delas actividades antes nmencionadas por la cual se genera el ingreso">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_actividad_extra.razon_social_negocio placeholder="Razón social del negocio" show_label=False%}
+                        </div>
+                    </div>
+                    <div class="col-6 fechas_anio_anterior">
+                      <div class="form-group">
+                            <label class="label-secondary">TIPO DE NEGOCIO</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Señalar el tipo de negocio por el cual se obtuvo el ingreso.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_actividad_extra.tipo_negocio placeholder="Tipo de negocio" show_label=False%}
+                        </div>
+                    </div>  
+ 
+                      </div>
+
+
+
+                    <button id="guardar_buttonAct" type="button" name="boton" observaciones='{{observaciones}}' folio="{{folio_declaracion}}" tipo_ingreso="{{tipo_ingreso}}" class="btn text-success font-weight-semibold text-uppercase" style="background: rgb(204, 227, 228);" onclick="guardarIngresoActividad()">
+                            Guardar 
+                    </button>
+                     <button id="update_buttonAct" type="button" name="boton" class="btn text-success font-weight-semibold text-uppercase" style="background: rgb(204, 227, 228);" onclick="actualizarIngresoActividad()">
+                            Actualizar 
+                    </button>
+                    <button id="cancel_buttonAct" type="button" class="btn font-weight-semibold text-uppercase" style="background: rgb(249, 216, 216); color: rgb(222, 96, 96);" onclick="clean_formAct()">
+                        Cancelar
+                    </button>
+                    </div>
+                    </div>
+
+                    <!-- ACTIVIDAD FINANCIERA EXTRA -->
+                    <div class="col-12">
+                        <div id="success-financiera" class="alert alert-success alert-dismissible fade show" role="alert" style="display:none;">
+                            <p></p>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div id="error-financiera" class="alert alert-danger alert-dismissible fade show" role="alert" style="display:none;">
+                            <p></p>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-12 fechas_anio_anterior"  style="border: solid #d8d3d3 0.5px;padding: 1rem;margin:1rem 0 1rem 0;">
+                        <div class="row">
+
+                            <div class="col-md-6">
+                                <label for="cargo-municipio" class="label-secondary">
+                                        II.2 POR ACTIVIDAD FINANCIERA (RENDIMIENTOS O GANANCIAS DESPUÉS DE IMPUESTOS) 
+                                </label>
+                            </div>
+                            <div class="col-md-6 d-flex flex-row-reverse">
+
+                                <button type="button"  id="plus_buttonFin"class="btn btn-link btn-link-plus text-success font-weight-semibold text-uppercase"name="boton" style="background: #cce3e4;margin-bottom: 0.5rem;"value='+ Añadir ingreso por servicio'onclick="show_formFin()"><img src="/static/src/img/plus.svg" alt="agregar" class="svg"> Agregar otro
+                                 </button>
+                            </div>
+                        </div>
+
+                    <table class="table table-striped" id="tab_fin"style="border: solid #e2dddd 0.5px;">
+                        <thead>
+                            <tr>
+                                <th>Monto por actividad financiera</th>
+                                <th>Moneda</th>
+                                <th>Tipo de instrumento</th>
+                                <th colspan="2">Acciones</th>
+                            </tr>
+                        </thead>
+                         <tbody>   
+
+                     {%if ingresos_actividad_extra_data %} 
+
+                        {% for ingreso in ingresos_actividad_extra_data %}
+                            {%if ingreso.ingreso_mensual_financiera %} 
+
+
+                        <tr id="{{ingreso.id}}_row">
+                            <td class='monto'>${{ingreso.ingreso_mensual_financiera}}</td>
+                            <td class='moneda'>{{ingreso.cat_moneda_financiera}}</td>
+                            <td class='tipo_instrumento'>{{ingreso.cat_tipo_instrumento}} </td>
+                             <td>
+                                <button id="{{ingreso.id}}_editar" class="btn btn-link btn-link-plus editButonsFin" type="button" monto="{{ingreso.ingreso_mensual_financiera}}" moneda="{{ingreso.cat_moneda_financiera.id}}" onclick="editarIngresoFin({{ingreso.id}},{{ingreso.cat_tipo_instrumento.id}})"><div name="divPersonaEditar"><img src="/static/src/img/editar.svg" class="svg"></div></button>
+                            </td>
+                            <td>
+                                <button id="{{ingreso.id}}_eliminar" class="btn btn-link btn-link-plus deleteButonsFin" type="button" onclick="eliminarIngreso({{ingreso.id}},'FN')"><div name="divPersonaEliminar"><img src="/static/src/img/eliminar.svg" class="svg"></div></button>
+                            </td>
+                        </tr>
+                              {% endif %}
+                        {% endfor %}  
+                        {%endif%}
+
+                          <tr id="no_data_fin">
+                            <td colspan="6">NO HAY DATOS PARA MOSTRAR</td>
+                          </tr>
+                        
+
+                        </tbody>
+                    </table>
+                    <div class="col-12 fechas_anio_anterior">
+                        <div id='formFinPlus' class="row">
+                            <input type="number" id="id_ingreso_financiera" hidden>
+                            <input type="text" id="tipo_instrumento_input" hidden>
+
+                            <div class="col-8 fechas_anio_anterior">
+                              <div class="form-group {% if 'ingreso_mensual_financiera' in campos_privados %}form-group-private{% endif %}">
+                                    <label class="label-secondary">II.2 POR ACTIVIDAD FINANCIERA (RENDIMIENTOS O GANANCIAS DESPUÉS DE IMPUESTOS)</label>
+                                    <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Señalar el monto neto de los rendimientos a gonancias que en su caso se hayan generado por su actividadfinaciera.">
+                                        <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                                    </button>
+                                    {% bootstrap_field ingresos_financiera_extra.ingreso_mensual_financiera placeholder="Monto de ingresos por actividad financiera" show_label=False%}
+                                </div>
+                            </div>
+                            <div class="col-4 fechas_anio_anterior">
+                              <div class="form-group {% if 'cat_moneda_financiera' in campos_privados %}form-group-private{% endif %}">
+                                    <label class="label-secondary">MONEDA POR ACTIVIDAD FINANCIERA</label>
+                                    <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Indicar moneda.">
+                                        <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                                    </button>
+                                    {% bootstrap_field ingresos_financiera_extra.cat_moneda_financiera placeholder="Moneda" show_label=False%}
+                                </div>
+                            </div>
+                            <div class="col-12 fechas_anio_anterior">
+                              <div class="form-group">
+                                    <label class="label-secondary">TIPO DE INSTRUMENTO QUE GENERÓ EL RENDIMIENTO O GANANCIA</label>
+                                    <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999"  title="Debe seleccionar el intrumento que generó el rendimiento o ganancia de las siguientes opciones: capital, fondos de inversión, organizaciones privadas, seguro de separación individualizdo, valores bursàtiles, bono y/u otros.">
+                                        <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                                    </button>
+                                    {% include 'layout/radiobuttons.html' with field_select=ingresos_financiera_extra.fields.cat_tipo_instrumento field_name=ingresos_financiera_extra.cat_tipo_instrumento otro_name=ingresos_financiera_extra.otro_tipo_instrumento tipo='cat_tipo_instrumento' campos_privados=campos_privados %}
+                                </div>
+                            </div>
+                        </div>
+                        
+
+                            <button id="guardar_buttonFin" type="button" name="boton" observaciones='{{observaciones}}' folio="{{folio_declaracion}}" tipo_ingreso="{{tipo_ingreso}}"  class="btn text-success font-weight-semibold text-uppercase" style="background: rgb(204, 227, 228);" onclick="guardarIngresoFinanciera()">
+                                    Guardar 
+                            </button>
+                             <button id="update_buttonFin" type="button" name="boton" class="btn text-success font-weight-semibold text-uppercase" style="background: rgb(204, 227, 228);" onclick="actualizarIngresoFinanciera()">
+                                    Actualizar 
+                            </button>
+                            <button id="cancel_buttonFin" type="button" class="btn font-weight-semibold text-uppercase" style="background: rgb(249, 216, 216); color: rgb(222, 96, 96);" onclick="clean_formFin()">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                    <!--  SERVICIOS EXTRA -->
+                    <div class="col-12">
+                        <div id="success-servicios" class="alert alert-success alert-dismissible fade show" role="alert" style="display:none;">
+                            <p></p>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div id="error-servicios" class="alert alert-danger alert-dismissible fade show" role="alert" style="display:none;">
+                            <p></p>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                     <div class="col-12 fechas_anio_anterior" style="border: solid #d8d3d3 0.5px;padding: 1rem;margin:1rem 0 1rem 0;">
+                        <div class="row">
+
+                            <div class="col-md-6">
+                                <label for="cargo-municipio" class="label-secondary">
+                                       II.3 POR SERVICIOS PROFESIONALES, CONSEJOS, CONSULTORÍAS Y/O ASESORÍAS (DESPUÉS DE IMPUESTOS)
+                                </label>
+                            </div>
+                            <div class="col-md-6 d-flex flex-row-reverse">
+                                <button type="button"  id="plus_buttonServ"class="btn btn-link btn-link-plus text-success font-weight-semibold text-uppercase"name="boton" style="background: #cce3e4;margin-bottom: 0.5rem;"value='+ Añadir ingreso por servicio'onclick="show_formServ()"><img src="/static/src/img/plus.svg" alt="agregar" class="svg"> Agregar otro
+                                 </button>
+                            </div>
+                        </div>
+                    <table class="table table-striped" id="tab_ser"style="border: solid #e2dddd 0.5px;">
+
+                        <thead>
+                            <tr>
+                                <th>Monto por servicios</th>
+                                <th>Moneda</th>
+                                <th>Tipo servicio</th>
+                                <th colspan="2">Acciones</th>
+                            </tr>
+                        </thead>
+                         <tbody>   
+                     {%if ingresos_actividad_extra_data %} 
+ 
+                        {% for ingreso in ingresos_actividad_extra_data %}
+                            {%if ingreso.ingreso_mensual_servicios %} 
+                        <tr id="{{ingreso.id}}_row">
+                            <td class='monto'>${{ingreso.ingreso_mensual_servicios}}</td>
+                            <td class='moneda'>{{ingreso.cat_moneda_servicios}}</td>
+                            <td class='tipo_servicio'>{{ingreso.tipo_servicio}} </td>
+                            <td>
+                                <button id="{{ingreso.id}}_editar" class="btn btn-link btn-link-plus editButonsServ" type="button" monto="{{ingreso.ingreso_mensual_servicios}}" moneda="{{ingreso.cat_moneda_servicios.id}}" tipo_servicio="{{ingreso.tipo_servicio}}" onclick="editarIngresoServ({{ingreso.id}})"><div name="divPersonaEditar"><img src="/static/src/img/editar.svg" class="svg"></div></button>
+                            </td>
+                            <td>
+                                <button id="{{ingreso.id}}_eliminar" class="btn btn-link btn-link-plus deleteButonsServ" type="button" onclick="eliminarIngreso({{ingreso.id}},'SV')"><div name="divPersonaEliminar"><img src="/static/src/img/eliminar.svg" class="svg"></div></button>
+                            </td>
+                        </tr>
+                        {% endif%}
+                              
+                        {% endfor %}  
+                    {%endif%}
+                          <tr id="no_data_serv">
+                            <td colspan="6">NO HAY DATOS PARA MOSTRAR</td>
+
+                          </tr>
+                        
+
+                      
+                        </tbody>
+                    </table>
+                    <div class="col-12 fechas_anio_anterior" >
+
+                        <div id='formServPlus' class="row">
+                            <input type="number" id="id_ingreso_servicio" hidden>
+
+
+                          <div class="col-8 fechas_anio_anterior">
+
+                          <div class="form-group {% if 'ingreso_mensual_servicios' in campos_privados %}form-group-private{% endif %}">
+                                <label class="label-secondary">II.3 POR SERVICIOS PROFESIONALES, CONSEJOS, CONSULTORÍAS Y/O ASESORÍAS (DESPUÉS DE IMPUESTOS)</label>
+                                <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Señalar el monto neto que obtenga derivado de servicios profesionales destintos al empleo cargo o comisión que desempeñe, por su participación en consejos o consultorías, y/o por asesorías que le generen alguna remuneración económica.">
+                                    <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                                </button>
+                                {% bootstrap_field ingresos_servicios_extra.ingreso_mensual_servicios placeholder="Monto de ingresos por servicios profesionales" show_label=False%}
+                            </div>
+                        </div>
+                        <div class="col-4 fechas_anio_anterior">
+                          <div class="form-group {% if 'cat_moneda_servicios' in campos_privados %}form-group-private{% endif %}">
+                                <label class="label-secondary">MONEDA POR SERVICIOS PROFESIONALES</label>
+                                <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Indicar moneda.">
+                                    <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                                </button>
+                                {% bootstrap_field ingresos_servicios_extra.cat_moneda_servicios placeholder="Moneda" show_label=False%}
+                            </div>
+                        </div>
+                        <div class="col-12 fechas_anio_anterior">
+                          <div class="form-group {% if 'tipo_servicio' in campos_privados %}form-group-private{% endif %}">
+                                <label class="label-secondary">TIPO DE SERVICIO PRESTADO</label>
+                                <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Indicar el tipo de servicio que prestó, el tipo de participación en los consejos o consultorías, así como el tipo de asesrías que llevo a cabo.">
+                                    <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                                </button>
+                                {% bootstrap_field ingresos_servicios_extra.tipo_servicio placeholder="Indicar el tipo de servicio prestado.Indicar el tipo de servicio que prestó, el tipo de participación en los consejos o consultorías, así como el tipo de asesrías que llevo a cabo" show_label=False%}
+                            </div>
+                        </div>
+                    </div>
+
+
+                        <button id="guardar_buttonServ" type="button" name="boton" observaciones='{{observaciones}}' folio="{{folio_declaracion}}" tipo_ingreso="{{tipo_ingreso}}" class="btn text-success font-weight-semibold text-uppercase " style="background: rgb(204, 227, 228);" onclick="guardarIngresoServicios()">
+                            Guardar 
+                        </button>
+                         <button id="update_buttonServ" type="button" name="boton" class="btn text-success font-weight-semibold text-uppercase" style="background: rgb(204, 227, 228);" onclick="actualizarIngresoServicios()">
+                                Actualizar 
+                        </button>
+                        <button id="cancel_buttonServ" type="button" class="btn font-weight-semibold text-uppercase" style="background: rgb(249, 216, 216); color: rgb(222, 96, 96);" onclick="clean_formServ()">
+                            Cancelar
+                        </button>
+                    </div>
+                    </div>
+                    <!-- SERVICIOS ENAJENACIÓN -->
+                    {% if current_url_seccion == 'ingresos-servidor-publico' or declaracion.cat_tipos_declaracion.codigo != 'INICIAL' %}
+                    <div class="col-12">
+                        <div id="success-enajenacion" class="alert alert-success alert-dismissible fade show" role="alert" style="display:none;">
+                            <p></p>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div id="error-enajenacion" class="alert alert-danger alert-dismissible fade show" role="alert" style="display:none;">
+                            <p></p>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-12 fechas_anio_anterior" style="border: solid #d8d3d3 0.5px;padding: 1rem;margin:1rem 0 1rem 0;">
+                        <div class="row">
+
+                            <div class="col-md-6">
+                                <label for="cargo-municipio" class="label-secondary">
+                                        II.4 POR ENAJENACIÓN DE BIENES (DESPUÉS DE IMPUESTOS) 
+                                </label>
+                            </div>
+                            <div class="col-md-6 d-flex flex-row-reverse">
+                                <button type="button"  id="plus_buttonEnajenacion"class="btn btn-link btn-link-plus text-success font-weight-semibold text-uppercase"name="boton" style="background: #cce3e4;margin-bottom: 0.5rem;"value='+ Añadir ingreso por enajenación'onclick="show_formEnajenacion()"><img src="/static/src/img/plus.svg" alt="agregar" class="svg"> Agregar otro
+                                 </button>
+                            </div>
+                        </div>
+                    <table class="table table-striped" id="tab_enajenacion"style="border: solid #e2dddd 0.5px;">
+                        <thead>
+                            <tr>
+                                <th>Monto ingresos no considerados</th>
+                                <th>Moneda</th>
+                                <th>Tipos bienes</th>
+                                <th colspan="2">Acciones</th>
+                            </tr>
+                        </thead>
+                         <tbody>   
+                     {%if ingresos_actividad_extra_data %} 
+
+                        {% for ingreso in ingresos_actividad_extra_data %}
+                            {%if ingreso.ingreso_enajenacion_bienes %} 
+                        <tr id="{{ingreso.id}}_row">
+                            <td class='monto'>${{ingreso.ingreso_enajenacion_bienes}}</td>
+                            <td class='moneda'>{{ingreso.cat_moneda_enajenacion_bienes}}</td>
+                            <td class='tipo_bienes'>{{ingreso.cat_tipos_bienes}} </td>
+                            <td>
+                                <button id="{{ingreso.id}}_editar" class="btn btn-link btn-link-plus" type="button" monto="{{ingreso.ingreso_enajenacion_bienes}}" moneda="{{ingreso.cat_moneda_enajenacion_bienes.id}}" onclick="editarIngresoEnajenacion({{ingreso.id}},{{ingreso.cat_tipos_bienes.id}})"><div name="divPersonaEditar"><img src="/static/src/img/editar.svg" class="svg"></div></button>
+                            </td>
+                            <td>
+                                <button id="{{ingreso.id}}_eliminar" class="btn btn-link btn-link-plus" type="button" onclick="eliminarIngreso({{ingreso.id}},'EN')"><div name="divPersonaEliminar"><img src="/static/src/img/eliminar.svg" class="svg"></div></button>
+                            </td>
+                        </tr>
+                        {%endif%}
+                              
+                        {% endfor %}  
+                        {%endif%}
+
+                          <tr id="no_data_enajenacion">
+                            <td colspan="6">NO HAY DATOS PARA MOSTRAR</td>
+                          </tr>
+                        
+
+                        </tbody>
+                    </table>
+                <div class="col-12 fechas_anio_anterior" >
+
+                <div id='formEnajenacionPlus' class="row">
+                            <input type="number" id="id_ingreso_enajenacion" hidden>
+                            <input type="text" id="tipo_bienes_ingreso" hidden>
+
+                    <div class="col-8 fechas_anio_anterior">
+
+                      <div class="form-group {% if 'ingreso_enajenacion_bienes' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">II.4 POR ENAJENACIÓN DE BIENES (DESPUÉS DE IMPUESTOS){% if 'ingreso_enajenacion_bienes' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Señalar el monto neto que obtenga por la venta de bienes. Este rubro solo será llenado en la declaración de odificación y conclusión">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_enajenacion_extra.ingreso_enajenacion_bienes placeholder="Monto por enajenación de bienes" show_label=False%}
+                        </div>
+                    </div>
+                    <div class="col-4 fechas_anio_anterior">
+                      <div class="form-group {% if 'cat_moneda_enajenacion_bienes' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">MONEDA POR ENAJENACIÓN DE BIENES{% if 'cat_moneda_enajenacion_bienes' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Indicar moneda.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_enajenacion_extra.cat_moneda_enajenacion_bienes placeholder="Moneda" show_label=False%}
+                        </div>
+                    </div>
+                    <div class="col-12 fechas_anio_anterior">
+                      <div class="form-group {% if 'cat_tipos_bienes' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">TIPO DE BIEN ENAJENADO{% if 'cat_tipos_bienes' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Señalar el tipo de bien vendido inmuble, vehículo o  mueble ">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                           {% include 'layout/radiobuttons.html' with field_select=ingresos_enajenacion_extra.fields.cat_tipos_bienes field_name=ingresos_enajenacion_extra.cat_tipos_bienes tipo='cat_tipos_bienes' campos_privados=campos_privados%}
+                        </div>
+                    </div>
+                </div>
+
+                    <button id="guardar_buttonEnajenacion" type="button" name="boton" observaciones='{{observaciones}}' folio="{{folio_declaracion}}" tipo_ingreso="{{tipo_ingreso}}"class="btn text-success font-weight-semibold text-uppercase" style="background: rgb(204, 227, 228);" onclick="guardarIngresoEnajenacion()">
+                            Guardar 
+                    </button>
+                     <button id="update_buttonEnajenacion" type="button" name="boton" class="btn text-success font-weight-semibold text-uppercase" style="background: rgb(204, 227, 228);" onclick="actualizarIngresoEnajenacion()">
+                            Actualizar 
+                    </button>
+                    <button id="cancel_buttonEnajenacion" type="button" class="btn font-weight-semibold text-uppercase" style="background: rgb(249, 216, 216); color: rgb(222, 96, 96);" onclick="clean_formEnajenacion()">
+                        Cancelar
+                    </button>
+                    </div>
+                </div>
+
+                    {% endif %}
+
+                     <!-- OTROS EXTRA -->
+                     <div class="col-12">
+                        <div id="success-otro" class="alert alert-success alert-dismissible fade show" role="alert" style="display:none;">
+                            <p></p>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div id="error-otro" class="alert alert-danger alert-dismissible fade show" role="alert" style="display:none;">
+                            <p></p>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+                     <div class="col-12 fechas_anio_anterior" style="border: solid #d8d3d3 0.5px;padding: 1rem;margin:1rem 0 1rem 0;">
+                        <div class="row">
+
+                            <div class="col-md-6">
+                                <label for="cargo-municipio" class="label-secondary">
+                                        II.{% if current_url_seccion == 'ingresos-netos' and declaracion.cat_tipos_declaracion.codigo == 'INICIAL'%}4 {% else %}5 {% endif %}OTROS INGRESOS NO CONSIDERADOS A LOS ANTERIORES (DESPUÉS DE IMPUESTOS)
+                                </label>
+                            </div>
+                            <div class="col-md-6 d-flex flex-row-reverse">
+                                <button type="button"  id="plus_buttonOtros"class="btn btn-link btn-link-plus text-success font-weight-semibold text-uppercase"name="boton" style="background: #cce3e4;margin-bottom: 0.5rem;"value='+ Añadir ingreso por servicio'onclick="show_formOtros()"><img src="/static/src/img/plus.svg" alt="agregar" class="svg"> Agregar otro
+                                 </button>
+                            </div>
+                        </div>
+                    <table class="table table-striped" id="tab_otros"style="border: solid #e2dddd 0.5px;">
+                        <thead>
+                            <tr>
+                                <th>Monto ingresos no considerados</th>
+                                <th>Moneda</th>
+                                <th>Tipo de ingreso</th>
+                                <th colspan="2">Acciones</th>
+                            </tr>
+                        </thead>
+                         <tbody>   
+                     {%if ingresos_actividad_extra_data %} 
+
+                        {% for ingreso in ingresos_actividad_extra_data %}
+                            {%if ingreso.ingreso_otros_ingresos %} 
+                        <tr id="{{ingreso.id}}_row">
+                            <td class='monto'>${{ingreso.ingreso_otros_ingresos}}</td>
+                            <td class='moneda'>{{ingreso.cat_moneda_otros_ingresos}}</td>
+                            <td class='tipo_ingreso'>{{ingreso.cat_tipos_actividad}} </td>
+                            <td>
+                                <button id="{{ingreso.id}}_editar" class="btn btn-link btn-link-plus editButonsOtros" type="button" monto="{{ingreso.ingreso_otros_ingresos}}" moneda="{{ingreso.cat_moneda_otros_ingresos.id}}" onclick="editarIngresoOtros({{ingreso.id}},{{ingreso.cat_tipos_actividad.id}})"><div name="divPersonaEditar"><img src="/static/src/img/editar.svg" class="svg"></div></button>
+                            </td>
+                            <td>
+                                <button id="{{ingreso.id}}_eliminar" class="btn btn-link btn-link-plus deleteButonsOtros" type="button" onclick="eliminarIngreso({{ingreso.id}},'OT')"><div name="divPersonaEliminar"><img src="/static/src/img/eliminar.svg" class="svg"></div></button>
+                            </td>
+                        </tr>
+                        {%endif%}
+                              
+                        {% endfor %}  
+                        {%endif%}
+
+                          <tr id="no_data_otros">
+                            <td colspan="6">NO HAY DATOS PARA MOSTRAR</td>
+                          </tr>
+                        
+
+                        </tbody>
+                    </table>
+                     <div class="col-12 fechas_anio_anterior" >
+
+                        <div id='formOtrosPlus' class="row">
+                            <input type="number" id="id_ingreso_otros" hidden>
+                            <input type="text" id="tipo_ingreso_otro_input" hidden>
+
+
+                    <div class="col-8 fechas_anio_anterior">
+                      <div class="form-group {% if 'ingreso_otros_ingresos' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">II.{% if current_url_seccion == 'ingresos-netos' and declaracion.cat_tipos_declaracion.codigo == 'INICIAL'%}4 {% else %}5 {% endif %}OTROS INGRESOS NO CONSIDERADOS A LOS ANTERIORES (DESPUÉS DE IMPUESTOS)</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Señalar el monto neto de algun otro ingreso que no esté considerado en los numerales que anteceden.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_otros_extra.ingreso_otros_ingresos placeholder="Monto de otros ingresos no especificados" show_label=False%}
+                        </div>
+                    </div>
+                    <div class="col-4 fechas_anio_anterior">
+                      <div class="form-group {% if 'cat_moneda_otros_ingresos' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">MONEDA POR OTROS SERVICIOS NO CONSIDERADOS</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Indicar moneda.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_otros_extra.cat_moneda_otros_ingresos placeholder="Moneda" show_label=False%}
+                        </div>
+                    </div>
+                    <div class="col-12 fechas_anio_anterior">
+                      <div class="form-group {% if 'cat_tipos_actividad' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">ESPECIFICAR TIPO DE INGRESO</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Especificar si el ingreso derivó de arrendamiento, regalía, sorteo y otros">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                           {% include 'layout/radiobuttons.html' with field_select=ingresos_otros_extra.fields.cat_tipos_actividad field_name=ingresos_otros_extra.cat_tipos_actividad tipo='cat_tipos_actividad' campos_privados=campos_privados%}
+                        </div>
+                    </div>
+                </div>
+
+                    <button id="guardar_buttonOtros" type="button" name="boton" observaciones='{{observaciones}}' folio="{{folio_declaracion}}" tipo_ingreso="{{tipo_ingreso}}"class="btn text-success font-weight-semibold text-uppercase" style="background: rgb(204, 227, 228);" onclick="guardarIngresoOtros()">
+                            Guardar 
+                    </button>
+                     <button id="update_buttonOtros" type="button" name="boton" class="btn text-success font-weight-semibold text-uppercase" style="background: rgb(204, 227, 228);" onclick="actualizarIngresoOtros()">
+                            Actualizar 
+                    </button>
+                    <button id="cancel_buttonOtros" type="button" class="btn font-weight-semibold text-uppercase" style="background: rgb(249, 216, 216); color: rgb(222, 96, 96);" onclick="clean_formOtros()">
+                        Cancelar
+                    </button>
+                    </div>
+                    </div>
+
+
+                    <div class="col-8 fechas_anio_anterior">
+                      <div class="form-group {% if 'ingreso_mensual_neto' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">A.-{% if current_url_seccion == 'ingresos-netos' %}INGRESO {% if declaracion.cat_tipos_declaracion.codigo == "INICIAL" %} MENSUAL {% else %} ANUAL {% endif %}NETO DEL DECLARANTE{% else %}INGRESO NETO DEL DECLARANTE, RECIBIDO EN EL AÑO ANTERIOR INMEDIATO ANTERIOR{% endif %} (SUMA DEL NUMERAL I Y II){% if 'ingreso_mensual_neto' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Indicar monto.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_declaracion_forms.ingreso_mensual_neto placeholder="ESTE CAMPO SE LLENARÁ AUTOMATICAMENTE" show_label=False%}
+                        </div>
+                    </div>
+                    <div class="col-4 fechas_anio_anterior">
+                      <div class="form-group {% if 'cat_moneda_neto' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">{% if current_url_seccion == 'ingresos-netos' %} MONEDA INGRESO NETO{% else %} MONEDA INGRESO NETO DEL DECLARANTE RECIBIDO EN EL AÑO ANTERIOR INMEDIATO{% endif %}{% if 'cat_moneda_neto' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Indicar moneda.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_declaracion_forms.cat_moneda_neto placeholder="Moneda" show_label=False%}
+                        </div>
+                    </div>
+                    
+                    
+                    <div class="col-8 fechas_anio_anterior">
+                      <div class="form-group {% if 'ingreso_mensual_pareja_dependientes' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">B.-{% if current_url_seccion == 'ingresos-netos' %} INGRESO {% if declaracion.cat_tipos_declaracion.codigo == "INICIAL" %} MENSUAL {% else %} ANUAL {% endif %}NETO DE LA PAREJA Y/O DEPENDIENTES ECONÓMICOS(DESPUÉS DE IMPUESTOS){% else %} INGRESO NETO DE LA PAREJA Y/O DEPENDIENTES ECONÓMICOS, RICIBIDOS EN EL AÑO INMEDIATO ANTERIOR(DESPUÉS DE IMPUESTOS){% endif %}{% if 'ingreso_mensual_pareja_dependientes' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Indicar monto.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_declaracion_forms.ingreso_mensual_pareja_dependientes show_label=False %}
+                            <input type="hidden" id="id_ingreso_mensual_pareja_dependientes_hiden"  name="ingreso_mensual_pareja_dependientes_hiden" value="{{ingresos_pareja}}">
+                        </div>
+                    </div>
+                    <div class="col-4 fechas_anio_anterior">
+                      <div class="form-group {% if 'cat_moneda_pareja_dependientes' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">MONEDA INGRESO NETO PAREJA Y/O DEPENDIENTES{% if 'cat_moneda_pareja_dependientes' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Indicar moneda.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_declaracion_forms.cat_moneda_pareja_dependientes placeholder="Moneda" show_label=False%}
+                        </div>
+                    </div>
+
+                  <div class="col-8 fechas_anio_anterior">
+                      <div class="form-group {% if 'ingreso_mensual_total' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">C.- 
+                {% if current_url_seccion == 'ingresos-netos' %} TOTAL DE INGRESOS {% if declaracion.cat_tipos_declaracion.codigo == "INICIAL" %} MENSUALES {% else %} ANUALES {% endif %}NETOS PERCIBIDOS POR EL DECLARANTE, PAREJA Y/O DEPENDIENTES ECONÓMICOS(SUMA LOS APARTADOS A Y B){% else %} TOTAL DE INGRESOS NETOS PERCIBIDOS PRECIBIDOS POR EL DECLARANTE, PAREJA Y/O DEPENDIENTES ECONÓMICOS EN EL AÑO INMEDIATO ANTERIOR(SUMA DE LOS APARTADOS A Y B) {% endif %}{% if 'ingreso_mensual_total' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Indicar monto.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_declaracion_forms.ingreso_mensual_total placeholder="ESTE CAMPO SE LLENARÁ AUTOMATICAMENTE" show_label=False%}
+                        </div>
+                    </div>
+                    <div class="col-4 fechas_anio_anterior">
+                      <div class="form-group {% if 'cat_moneda_total' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">MONEDA INGRESO TOTAL PERCIBIDOS(APARTADOS A Y B){% if 'cat_moneda_total' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999" title="Indicar moneda.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field ingresos_declaracion_forms.cat_moneda_total placeholder="Moneda" show_label=False%}
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 fechas_anio_anterior">
+                          <div class="form-group {% if 'observaciones' in campos_privados %}form-group-private{% endif %}">
+                              <label class="label-secondary mb-2">ACLARACIONES/OBSERVACIONES{% if 'observacion' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                              <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999"  title="En este espacio el declarante podrá realizar las aclaraciones u observaciones que considere pertinentes respecto de algun o algunos de,los incisos de este apartado.">
+                                  <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                              </button>
+                          {% bootstrap_field  observaciones.observacion   show_label=False placeholder="ACLARACIONES/OBSERVACIONES" %}
+                        </div>
+                    </div>
+                  </div>
+
+                  <div id="ms_campos_obligatorios"></div>
+
+                {% include 'layout/guardar.html' %}
+                <div class="row"><div class="col-12"><br/></div></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block body_script %}
+<script>
+
+    $( document ).ready(function() {
+        $('#formActPlus').hide();
+        $('#update_buttonAct').hide();
+        $('#cancel_buttonAct').hide();
+        $('#guardar_buttonAct').hide();
+        $('#guardado_temporal_act').hide();
+        $('#formFinPlus').hide();
+        $('#update_buttonFin').hide();
+        $('#cancel_buttonFin').hide();
+        $('#guardar_buttonFin').hide();
+        $('#guardado_temporal_fin').hide();
+        $('#formServPlus').hide();
+        $('#update_buttonServ').hide();
+        $('#cancel_buttonServ').hide();
+        $('#guardar_buttonServ').hide();
+        $('#guardado_temporal_serv').hide();
+        $('#formOtrosPlus').hide();
+        $('#update_buttonOtros').hide();
+        $('#cancel_buttonOtros').hide();
+        $('#guardar_buttonOtros').hide();
+        $('#guardado_temporal_otros').hide();  
+        $('#formEnajenacionPlus').hide();
+        $('#update_buttonEnajenacion').hide();
+        $('#cancel_buttonEnajenacion').hide();
+        $('#guardar_buttonEnajenacion').hide();
+        $('#guardado_temporal_enajenacion').hide();  
+        sumarIngresosExtra();
+        noData();
+
+
+
+
+
+    });
+    /*function intToPesos(num){
+        const options = { style: 'currency', currency: 'USD' };
+        const numberFormat = new Intl.NumberFormat('en-US', options);
+
+        return numberFormat.format(num);
+    }*/
+    function noData() {
+        if(!$('#tab_act>tbody>tr>td.monto').is(":visible")){
+            $('#no_data_act').show();
+        }
+        else{
+            $('#no_data_act').hide();
+        }
+        if(!$('#tab_fin>tbody>tr>td.monto').is(":visible")){
+            $('#no_data_fin').show();
+        }
+        else{
+            $('#no_data_fin').hide();
+           
+        }
+        if(!$('#tab_ser>tbody>tr>td.monto').is(":visible")){
+            $('#no_data_serv').show();
+        }
+        else{
+            $('#no_data_serv').hide();
+        }
+        if(!$('#tab_otros>tbody>tr>td.monto').is(":visible")){
+            $('#no_data_otros').show();
+        }
+        else{
+            $('#no_data_otros').hide();
+        }
+        if(!$('#tab_enajenacion>tbody>tr>td.monto').is(":visible")){
+            $('#no_data_enajenacion').show();
+        }
+        else{
+            $('#no_data_enajenacion').hide();
+
+        }    
+    }
+    function sumarIngresosExtra(){
+        var ingresos_otros=0;
+        var textValues = $('.monto').map(function() {
+            if($(this).text()){   
+                var txt = $(this).text()
+                ingresos_otros = ingresos_otros+ parseInt(txt.slice(1));
+            }
+        }).get();
+
+        $('#id_ingresos_declaracion-ingreso_mensual_otros_ingresos').val(ingresos_otros);
+        change_ingresos_suma();
+    }
+    $("#id_ingresos_declaracion-ingreso_enajenacion_bienes").change(function(){
+        sumarIngresosExtra();
+
+    });
+    function editarIngresoAct(id){
+        $('#formActPlus').show();
+        $('#plus_buttonAct').hide();
+        $('#guardar_buttonAct').hide();
+        $('#cancel_buttonAct').show();
+        $('#update_buttonAct').show();
+        $('#id_ingreso_actividad').val(id);
+        $('#id_ingreso_mensual_actividad').val($('#'+id+'_editar').attr('monto'));
+        $('#id_cat_moneda_actividad').val($('#'+id+'_editar').attr('moneda'));
+        $('#id_razon_social_negocio').val($('#'+id+'_editar').attr('razon_social'));
+        $('#id_tipo_negocio').val($('#'+id+'_editar').attr('tipo_negocio'));
+
+        
+    }
+    function editarIngresoFin(id, tipo_instrumento){
+        $('#formFinPlus').show();
+        $('#plus_buttonFin').hide();
+        $('#guardar_buttonFin').hide();
+        $('#cancel_buttonFin').show();
+        $('#update_buttonFin').show();
+        $('#id_ingreso_financiera').val(id);
+        $('#id_ingreso_mensual_financiera').val($('#'+id+'_editar').attr('monto'));
+        $('#id_cat_moneda_financiera').val($('#'+id+'_editar').attr('moneda'));
+        $('#tipo_instrumento_input').val(tipo_instrumento);
+        $('input[name="cat_tipo_instrumento"]').attr('checked', false);
+        $('#id_cat_tipo_instrumento-' + tipo_instrumento).attr('checked', true);
+
+
+        
+    }
+    function editarIngresoOtros(id, tipo_instrumento){
+        $('#formOtrosPlus').show();
+        $('#plus_buttonOtros').hide();
+        $('#guardar_buttonOtros').hide();
+        $('#cancel_buttonOtros').show();
+        $('#update_buttonOtros').show();
+
+        $('#id_ingreso_otros').val(id);
+        $('#id_ingreso_otros_ingresos').val($('#'+id+'_editar').attr('monto'));
+        $('#id_cat_moneda_otros_ingresos').val($('#'+id+'_editar').attr('moneda'));
+        $('#tipo_ingreso_otro_input').val(tipo_instrumento);
+        $('input[name="cat_tipos_actividad"]').attr('checked', false);
+        $('#id_cat_tipos_actividad-' + tipo_instrumento).attr('checked', true);
+
+
+        
+    }
+        function editarIngresoEnajenacion(id, tipo_bienes){
+        $('#formEnajenacionPlus').show();
+        $('#plus_buttonEnajenacion').hide();
+        $('#guardar_buttonEnajenacion').hide();
+        $('#cancel_buttonEnajenacion').show();
+        $('#update_buttonEnajenacion').show();
+        $('#id_ingreso_enajenacion').val(id);
+        $('#id_ingreso_enajenacion_bienes').val($('#'+id+'_editar').attr('monto'));
+        $('#id_cat_moneda_enajenacion_bienes').val($('#'+id+'_editar').attr('moneda'));
+        $('#tipo_bienes_ingreso').val(tipo_bienes);
+        $('input[name="cat_tipos_bienes"]').attr('checked', false);
+        $('#id_cat_tipos_bienes-' + tipo_bienes).attr('checked', true);
+
+
+        
+    }
+    $('input[name="cat_tipo_instrumento"]').on('click', function(){
+
+        let id_tipo_instrumento = this.id;
+        $('#tipo_instrumento_input').val(id_tipo_instrumento.split('-')[1]);
+        id_tipo_instrumento = '';
+
+        
+
+    });
+        $('input[name="cat_tipos_actividad"]').on('click', function(){
+
+        let id_tipo_ingreso = this.id;
+        $('#tipo_ingreso_otro_input').val(id_tipo_ingreso.split('-')[1]);
+        id_tipo_ingreso = '';
+
+        
+
+    });
+    $('input[name="cat_tipos_bienes"]').on('click', function(){
+
+        let id_tipo_ingreso = this.id;
+        $('#tipo_bienes_ingreso').val(id_tipo_ingreso.split('-')[1]);
+        id_tipo_ingreso = '';
+
+    });
+
+
+
+    function editarIngresoServ(id){
+        $('#formServPlus').show();
+        $('#plus_buttonServ').hide();
+        $('#guardar_buttonServ').hide();
+        $('#cancel_buttonServ').show();
+        $('#update_buttonServ').show();
+        $('#id_ingreso_servicio').val(id);
+        $('#id_ingreso_mensual_servicios').val($('#'+id+'_editar').attr('monto'));
+        $('#id_cat_moneda_servicios').val($('#'+id+'_editar').attr('moneda'));
+        $('#id_tipo_servicio').val($('#'+id+'_editar').attr('tipo_servicio'));
+
+        
+    }
+    function actualizarIngresoServicios(){
+        hide_messages()
+        let id = $('#id_ingreso_servicio').val();
+        let monto = $('#id_ingreso_mensual_servicios').val();
+        let moneda = $('#id_cat_moneda_servicios').val();
+        let tipo_servicio = $('#id_tipo_servicio').val();
+
+            
+        $.ajax(
+                {
+                    method: "GET",
+                    url: "{% url 'declaracion:ingresos-update' %}",
+                    data: {
+                        'id':id,
+                        'monto':monto,
+                        'moneda':moneda,
+                        'tipo_servicio':tipo_servicio,
+                        'tipo_actividad':'SV'
+                    },
+                    success: function(response){
+                        if (response.error) {
+                            $('#error-servicios > p').text(response.error);
+                            $('#error-servicios').show();
+                        }else{
+                            $('#success-servicios > p').text(response.success);
+                            $('#success-servicios').show();
+                            $("#" + response.id_ingreso + "_row > .monto").text('$'+response.monto);
+                            $("#" + response.id_ingreso + "_row > .moneda").text(response.moneda); 
+                            $("#" + response.id_ingreso + "_row > .tipo_servicio").text(response.tipo_servicio);
+                            $('#'+response.id_ingreso+'_editar').attr('monto',response.monto);
+                            $('#'+response.id_ingreso+'_editar').attr('moneda',response.id_moneda);
+                            $('#'+response.id_ingreso+'_editar').attr('tipo_servicio',response.tipo_servicio);
+                            
+                            clean_formServ();
+                             sumarIngresosExtra();
+
+                        }
+                    }
+                });
+    }
+    function actualizarIngresoActividad(){
+
+        hide_messages()
+                let id = $('#id_ingreso_actividad').val();
+                let monto = $('#id_ingreso_mensual_actividad').val();
+                let moneda = $('#id_cat_moneda_actividad').val();
+                let razon_social = $('#id_razon_social_negocio').val();
+                let tipo_negocio = $('#id_tipo_negocio').val();
+
+
+        $.ajax(
+                {
+                    method: "GET",
+                    url: "{% url 'declaracion:ingresos-update' %}",
+                    data: {
+                        'id':id,
+                        'monto':monto,
+                        'moneda':moneda,
+                        'razon_social':razon_social,
+                        'tipo_negocio':tipo_negocio,
+                        'tipo_actividad':'AC'
+                    },
+                    success: function(response){
+                        if (response.error) {
+                            $('#error-industrial > p').text(response.error);
+                            $('#error-industrial').show();
+                        }else{
+                            $('#success-industrial > p').text(response.success);
+                            $('#success-industrial').show();
+                             $("#" + response.id_ingreso + "_row > .monto").text('$'+response.monto);
+                            $("#" + response.id_ingreso + "_row > .moneda").text(response.moneda); 
+                            $("#" + response.id_ingreso + "_row > .razon_social").text(response.razon_social); 
+                            $("#" + response.id_ingreso + "_row > .tipo_negocio").text(response.tipo_negocio);
+                            $('#'+response.id_ingreso+'_editar').attr('monto',response.monto);
+                            $('#'+response.id_ingreso+'_editar').attr('moneda',response.id_moneda);
+                            $('#'+response.id_ingreso+'_editar').attr('razon_social',response.razon_social);
+                            $('#'+response.id_ingreso+'_editar').attr('tipo_negocio',response.tipo_negocio);
+                            
+                            sumarIngresosExtra();
+                            clean_formAct();
+                        }
+                    }
+                });
+    }
+
+
+    function actualizarIngresoFinanciera(){
+
+        hide_messages()
+
+        let id = $('#id_ingreso_financiera').val();
+        let monto = $('#id_ingreso_mensual_financiera').val();
+        let moneda = $('#id_cat_moneda_financiera').val();
+        let tipo_instrumento = $('#tipo_instrumento_input').val();
+
+            
+        $.ajax(
+                {
+                    method: "GET",
+                    url: "{% url 'declaracion:ingresos-update' %}",
+                    data: {
+                        'id':id,
+                        'monto':monto,
+                        'moneda':moneda,
+                        'tipo_instrumento':tipo_instrumento,
+                        'tipo_actividad':'FN'
+                    },
+                    success: function(response){
+                        if (response.error) {
+                            $('#error-financiera > p').text(response.error);
+                            $('#error-financiera').show();
+                        }else{
+                            $('#success-financiera > p').text(response.success);
+                            $('#success-financiera').show();
+                            $("#" + response.id_ingreso + "_row > .monto").text('$'+response.monto);
+                            $("#" + response.id_ingreso + "_row > .moneda").text(response.moneda); 
+                            $("#" + response.id_ingreso + "_row > .tipo_instrumento").text(response.tipo_instrumento);
+                            $('#'+response.id_ingreso+'_editar').attr('monto',response.monto);
+                            $('#'+response.id_ingreso+'_editar').attr('moneda',response.id_moneda);
+                            sumarIngresosExtra();
+                            clean_formFin();
+                        }
+                    }
+                });
+    }
+
+        function actualizarIngresoOtros(){
+            hide_messages()
+            let id = $('#id_ingreso_otros').val();
+            let monto = $('#id_ingreso_otros_ingresos').val();
+            let moneda = $('#id_cat_moneda_otros_ingresos').val();
+            let tipo_ingreso = $('#tipo_ingreso_otro_input').val();
+            
+            $.ajax(
+                {
+                    method: "GET",
+                    url: "{% url 'declaracion:ingresos-update' %}",
+                    data: {
+                        'id':id,
+                        'monto':monto,
+                        'moneda':moneda,
+                        'tipo_ingreso':tipo_ingreso,
+                        'tipo_actividad':'OT'
+                    },
+                    success: function(response){
+                        if (response.error) {
+                            $('#error-otro > p').text(response.error);
+                            $('#error-otro').show();
+                        }else{
+                            $('#success-otro > p').text(response.success);
+                            $('#success-otro').show();
+                            $("#" + response.id_ingreso + "_row > .monto").text('$'+response.monto);
+                            $("#" + response.id_ingreso + "_row > .moneda").text(response.moneda); 
+                            $("#" + response.id_ingreso + "_row > .tipo_ingreso").text(response.tipo_ingreso);
+                            $('#'+response.id_ingreso+'_editar').attr('monto',response.monto);
+                            $('#'+response.id_ingreso+'_editar').attr('moneda',response.id_moneda);
+                            
+                            clean_formOtros();
+                            sumarIngresosExtra();
+
+                        }
+                    }
+                });
+    }
+       function actualizarIngresoEnajenacion(){
+            hide_messages()
+            let id = $('#id_ingreso_enajenacion').val();
+            let monto = $('#id_ingreso_enajenacion_bienes').val();
+            let moneda = $('#id_cat_moneda_enajenacion_bienes').val();
+            let tipo_bienes = $('#tipo_bienes_ingreso').val();
+            
+            $.ajax(
+                {
+                    method: "GET",
+                    url: "{% url 'declaracion:ingresos-update' %}",
+                    data: {
+                        'id':id,
+                        'monto':monto,
+                        'moneda':moneda,
+                        'tipo_bienes':tipo_bienes,
+                        'tipo_actividad':'EN'
+                    },
+                    success: function(response){
+                        if (response.error) {
+                            $('#error-enajenacion > p').text(response.error);
+                            $('#error-enajenacion').show();
+                        }else{
+                            $('#success-enajenacion > p').text(response.success);
+                            $('#success-enajenacion').show();
+                            $("#" + response.id_ingreso + "_row > .monto").text('$'+response.monto);
+                            $("#" + response.id_ingreso + "_row > .moneda").text(response.moneda); 
+                            $("#" + response.id_ingreso + "_row > .tipo_bienes").text(response.tipo_bienes);
+                            $('#'+response.id_ingreso+'_editar').attr('monto',response.monto);
+                            $('#'+response.id_ingreso+'_editar').attr('moneda',response.id_moneda);
+                            clean_formEnajenacion();
+                            sumarIngresosExtra();
+
+                        }
+                    }
+                });
+    }
+    function eliminarIngreso(id,tipo){
+        hide_messages()
+        if (confirm('¿Seguro que desea borrar el ingreso seleccionado?')) {
+            $.ajax(
+                {
+                    method: "POST",
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    url: "{% url 'declaracion:ingresos-delete' %}",
+                    data: {
+                        'id':id,
+                        'tipo_ingreso':tipo
+                    },
+                    success: function(response){
+                        
+                        if(response.tipo_ingreso == 'AC'){
+                            if (response.error) {
+                                $('#error-industrial > p').text(response.error);
+                                $('#error-industrial').show();
+                            }else{
+                                
+                                $('#success-industrial > p').text(response.success);
+                                $('#success-industrial').show();
+                                selector = '#' + response.id_ingreso + '_row';
+                                $(selector).remove();
+                                sumarIngresosExtra();
+                            }
+                            clean_formAct();
+                        
+                        }
+                        else if(response.tipo_ingreso == 'FN'){
+                            if (response.error) {
+                                $('#error-financiera > p').text(response.error);
+                                $('#error-financiera').show();
+                            }else{
+                                $('#success-financiera > p').text(response.success);
+                                $('#success-financiera').show();
+                                selector = '#' + response.id_ingreso + '_row';
+                                $(selector).remove();
+                                sumarIngresosExtra();
+                            }
+                            clean_formFin();
+                            
+                        }
+                        else if(response.tipo_ingreso == 'SV'){
+                            if (response.error) {
+                                $('#error-servicios > p').text(response.error);
+                                $('#error-servicios').show();
+                            }else{
+                                $('#success-servicios > p').text(response.success);
+                                $('#success-servicios').show();
+                                selector = '#' + response.id_ingreso + '_row';
+                                $(selector).remove();
+                                sumarIngresosExtra();
+                            }
+                            clean_formServ();
+                           
+                        }
+                        
+                        else if(response.tipo_ingreso == 'OT'){
+                            if (response.error) {
+                                $('#error-otro > p').text(response.error);
+                                $('#error-otro').show();
+                            }else{
+                                
+                                $('#success-otro > p').text(response.success);
+                                $('#success-otro').show();
+                                selector = '#' + response.id_ingreso + '_row';
+                                $(selector).remove();
+                                sumarIngresosExtra();
+                            }
+                            clean_formOtros();
+                            
+                        }
+                        else if(response.tipo_ingreso == 'EN'){
+                            if (response.error) {
+                                $('#error-enajenacion > p').text(response.error);
+                                $('#error-enajenacion').show();
+                            }else{
+                                
+                                $('#success-enajenacion > p').text(response.success);
+                                $('#success-enajenacion').show();
+                                selector = '#' + response.id_ingreso + '_row';
+                                $(selector).remove();
+                                sumarIngresosExtra();
+                            }
+                            clean_formEnajenacion();
+                        }
+                        noData();
+
+                    }
+                });
+        } 
+
+        
+    }
+    function guardarIngresoActividad(){
+        hide_messages()
+        let folio_declaracion = $('#guardar_buttonAct').attr('folio');
+        let observaciones = $('#guardar_buttonAct').attr('observaciones');
+        let tipo_ingreso = $('#guardar_buttonAct').attr('tipo_ingreso'); 
+        let ingreso_mensual_actividad =$('#id_ingreso_mensual_actividad').val();
+        let cat_moneda_actividad = $('#id_cat_moneda_actividad').val();
+        let razon_social_negocio = $('#id_razon_social_negocio').val();
+        let tipo_negocio = $('#id_tipo_negocio').val();
+         $.ajax(
+                {
+                    method: "GET",
+                    url: "{% url 'declaracion:ingresos-add' %}",
+                    data: {
+                        'ingreso_mensual_actividad':ingreso_mensual_actividad,
+                        'cat_moneda_actividad':cat_moneda_actividad,
+                        'razon_social_negocio':razon_social_negocio,
+                        'tipo_negocio':tipo_negocio,
+                        'observaciones':observaciones,
+                        'tipo_ingreso':tipo_ingreso,
+                        'folio_declaracion':folio_declaracion,
+                        'ingreso_extra':'AC'
+                    },
+                    success: function(response){
+                        if (response.error) {
+                                $('#error-industrial > p').text(response.error);
+                                $('#error-industrial').show();
+                        }else{
+                            
+                            $('#success-industrial > p').text(response.success);
+                            $('#success-industrial').show();
+                                
+                            var tr = document.createElement("tr");
+                            tr.id = response.id_ingreso+'_row';
+                            var td_monto = '<td class="monto">$'+response.monto+'</td>';
+                            var td_moneda = '<td class="moneda">'+response.moneda+'</td>';
+                            var td_razon_social = '<td class="razon_social">'+response.razon_social+'</td>';
+                            var td_tipo_negocio = '<td class="tipo_negocio">'+response.tipo_negocio+'</td>';
+                            var tipo_ingreso = "'AC'"
+                            var button_edit = '<td><button id="'+response.id_ingreso+'_editar" class="btn btn-link btn-link-plus editButonsAct" type="button" monto="'+response.monto+'" moneda="'+response.moneda_id+'" razon_social="'+response.razon_social+'" tipo_negocio="'+response.tipo_negocio+'" onclick="editarIngresoAct('+response.id_ingreso+')"><div name="divPersonaEditar"><img src="/static/src/img/editar.svg" class="svg"></div></button></td>';
+                            var button_delete='<td><button id="'+response.id_ingreso+'_eliminar" class="btn btn-link btn-link-plus deleteButonsAct" type="button" onclick="eliminarIngreso('+response.id_ingreso+','+tipo_ingreso+')"><div name="divPersonaEliminar"><img src="/static/src/img/eliminar.svg" class="svg"></div></button></td>'
+
+                            tr.innerHTML = td_monto+td_moneda+td_razon_social+td_tipo_negocio+button_edit+button_delete;
+
+                            $("table#tab_act > tbody").append(tr);
+
+                           
+                            sumarIngresosExtra();
+                            clean_formAct();
+                        }
+                    }
+                });
+        $('#no_data_act').hide();
+
+        sumarIngresosExtra();
+
+        
+    }
+    function guardarIngresoFinanciera(){
+        hide_messages()
+        let folio_declaracion = $('#guardar_buttonFin').attr('folio');
+        let observaciones = $('#guardar_buttonFin').attr('observaciones');
+        let tipo_ingreso = $('#guardar_buttonFin').attr('tipo_ingreso'); 
+
+        let ingreso_mensual_financiera =$('#id_ingreso_mensual_financiera').val();
+        let cat_moneda_financiera = $('#id_cat_moneda_financiera').val();
+        let cat_tipo_instrumento = $('#tipo_instrumento_input').val();
+
+
+         $.ajax(
+                {
+                    method: "GET",
+                    url: "{% url 'declaracion:ingresos-add' %}",
+                    data: {
+                        'ingreso_mensual_financiera':ingreso_mensual_financiera,
+                        'cat_moneda_financiera':cat_moneda_financiera,
+                        'cat_tipo_instrumento':cat_tipo_instrumento,
+                        'observaciones':observaciones,
+                        'tipo_ingreso':tipo_ingreso,
+                        'folio_declaracion':folio_declaracion,
+                        'ingreso_extra':'FN'
+                    },
+                    success: function(response){
+                        if (response.error) {
+                            $('#error-financiera > p').text(response.error);
+                            $('#error-financiera').show();
+                        }else{
+                            $('#success-financiera > p').text(response.success);
+                            $('#success-financiera').show();
+                            var tr = document.createElement("tr");
+                            tr.id = response.id_ingreso+'_row';
+                            var td_monto = '<td class="monto">$'+response.monto+'</td>';
+                            var td_moneda = '<td class="moneda">'+response.moneda+'</td>';
+                            var td_tipo_instrumento = '<td class="tipo_instrumento">'+response.tipo_instrumento+'</td>';
+                            var tipo_ingreso = "'FN'"
+
+                            var button_edit = '<td><button id="'+response.id_ingreso+'_editar" class="btn btn-link btn-link-plus editButonsFin" type="button" monto="'+response.monto+'" moneda="'+response.moneda_id+'"  onclick="editarIngresoFin('+response.id_ingreso+','+response.tipo_instrumento_id+')"><div name="divPersonaEditar"><img src="/static/src/img/editar.svg" class="svg"></div></button></td>';
+                            var button_delete='<td><button id="'+response.id_ingreso+'_eliminar" class="btn btn-link btn-link-plus deleteButonsFin" type="button" onclick="eliminarIngreso('+response.id_ingreso+','+tipo_ingreso+')"><div name="divPersonaEliminar"><img src="/static/src/img/eliminar.svg" class="svg"></div></button></td>'
+
+                            tr.innerHTML = td_monto+td_moneda+td_tipo_instrumento+button_edit+button_delete;
+
+                            $("table#tab_fin > tbody").append(tr);
+
+                           
+                            sumarIngresosExtra();
+                            clean_formFin();
+                        }
+                    }
+                });
+        $('#no_data_fin').hide();
+
+        sumarIngresosExtra();
+
+        
+    }
+    function guardarIngresoServicios(){
+        hide_messages()
+        let folio_declaracion = $('#guardar_buttonServ').attr('folio');
+        let observaciones = $('#guardar_buttonServ').attr('observaciones');
+        let tipo_ingreso = $('#guardar_buttonServ').attr('tipo_ingreso'); 
+
+        let ingreso_mensual_servicios =$('#id_ingreso_mensual_servicios').val();
+        let cat_moneda_servicios = $('#id_cat_moneda_servicios').val();
+        let tipo_servicio = $('#id_tipo_servicio').val();
+
+
+         $.ajax(
+                {
+                    method: "GET",
+                    url: "{% url 'declaracion:ingresos-add' %}",
+                    data: {
+                        'ingreso_mensual_servicios':ingreso_mensual_servicios,
+                        'cat_moneda_servicios':cat_moneda_servicios,
+                        'tipo_servicio':tipo_servicio,
+                        'observaciones':observaciones,
+                        'tipo_ingreso':tipo_ingreso,
+                        'folio_declaracion':folio_declaracion,
+                        'ingreso_extra':'SV'
+                    },
+                    success: function(response){
+                        if (response.error) {
+                            $('#error-servicios > p').text(response.error);
+                            $('#error-servicios').show();
+                        }else{
+                            $('#success-servicios > p').text(response.success);
+                            $('#success-servicios').show();
+                            var tr = document.createElement("tr");
+                            tr.id = response.id_ingreso+'_row';
+                            var td_monto = '<td class="monto">$'+response.monto+'</td>';
+                            var td_moneda = '<td class="moneda">'+response.moneda+'</td>';
+                            var td_tipo_servicio = '<td class="tipo_servicio">'+response.tipo_servicio+'</td>';
+                            var tipo_ingreso = "'SV'"
+
+                            var button_edit = '<td><button id="'+response.id_ingreso+'_editar" class="btn btn-link btn-link-plus editButonsServ" type="button" tipo_servicio="'+response.tipo_servicio+'" monto="'+response.monto+'" moneda="'+response.moneda_id+'" onclick="editarIngresoServ('+response.id_ingreso+')"><div name="divPersonaEditar"><img src="/static/src/img/editar.svg" class="svg"></div></button></td>';
+                            var button_delete='<td><button id="'+response.id_ingreso+'_eliminar" class="btn btn-link btn-link-plus deleteButonsServ" type="button" onclick="eliminarIngreso('+response.id_ingreso+','+tipo_ingreso+')"><div name="divPersonaEliminar"><img src="/static/src/img/eliminar.svg" class="svg"></div></button></td>'
+
+                            tr.innerHTML = td_monto+td_moneda+td_tipo_servicio+button_edit+button_delete;
+
+                            $("table#tab_ser > tbody").append(tr);
+
+                           
+                            sumarIngresosExtra();
+                            clean_formServ();
+                        }
+                    }
+                });
+        $('#no_data_serv').hide();
+
+        sumarIngresosExtra();
+
+        
+    }
+
+    function guardarIngresoOtros(){
+        hide_messages()
+        let folio_declaracion = $('#guardar_buttonOtros').attr('folio');
+        let observaciones = $('#guardar_buttonOtros').attr('observaciones');
+        let tipo_ingreso = $('#guardar_buttonOtros').attr('tipo_ingreso'); 
+
+        let ingreso_otros_ingresos =$('#id_ingreso_otros_ingresos').val();
+        let cat_moneda_otros_ingresos = $('#id_cat_moneda_otros_ingresos').val();
+        let cat_tipos_actividad = $('#tipo_ingreso_otro_input').val();
+
+
+         $.ajax(
+                {
+                    method: "GET",
+                    url: "{% url 'declaracion:ingresos-add' %}",
+                    data: {
+                        'ingreso_otros_ingresos':ingreso_otros_ingresos,
+                        'cat_moneda_otros_ingresos':cat_moneda_otros_ingresos,
+                        'cat_tipos_actividad':cat_tipos_actividad,
+                        'observaciones':observaciones,
+                        'tipo_ingreso':tipo_ingreso,
+                        'folio_declaracion':folio_declaracion,
+                        'ingreso_extra':'OT'
+                    },
+                    success: function(response){
+                        if (response.error) {
+                            $('#error-otro > p').text(response.error);
+                            $('#error-otro').show();
+                        }else{
+                            $('#success-otro > p').text(response.success);
+                            $('#success-otro').show();
+                            var tr = document.createElement("tr");
+                            tr.id = response.id_ingreso+'_row';
+                            var td_monto = '<td class="monto">$'+response.monto+'</td>';
+                            var td_moneda = '<td class="moneda">'+response.moneda+'</td>';
+                            var td_tipo_actividad = '<td class="tipo_actividad">'+response.tipo_actividad+'</td>';
+                            var tipo_ingreso = "'OT'"
+                            var button_edit = '<td><button id="'+response.id_ingreso+'_editar" class="btn btn-link btn-link-plus editButonsOtros" type="button" monto="'+response.monto+'" moneda="'+response.moneda_id+'" onclick="editarIngresoOtros('+response.id_ingreso+','+response.tipo_actividad_id+')"><div name="divPersonaEditar"><img src="/static/src/img/editar.svg" class="svg"></div></button></td>';
+                            var button_delete='<td><button id="'+response.id_ingreso+'_eliminar" class="btn btn-link btn-link-plus deleteButonsFin" type="button" onclick="eliminarIngreso('+response.id_ingreso+','+tipo_ingreso+')"><div name="divPersonaEliminar"><img src="/static/src/img/eliminar.svg" class="svg"></div></button></td>'
+
+                            tr.innerHTML = td_monto+td_moneda+td_tipo_actividad+button_edit+button_delete;
+
+                            $("table#tab_otros > tbody").append(tr);
+
+                           
+                            sumarIngresosExtra();
+                            clean_formOtros();
+                        }
+                    }
+                });
+        $('#no_data_otros').hide();
+
+        sumarIngresosExtra();
+
+        
+    }
+
+ function guardarIngresoEnajenacion(){
+        hide_messages()
+        let folio_declaracion = $('#guardar_buttonEnajenacion').attr('folio');
+        let observaciones = $('#guardar_buttonEnajenacion').attr('observaciones');
+        let tipo_ingreso = $('#guardar_buttonEnajenacion').attr('tipo_ingreso'); 
+
+        let ingreso_enajenacion_bienes =$('#id_ingreso_enajenacion_bienes').val();
+        let cat_moneda_enajenacion_bienes = $('#id_cat_moneda_enajenacion_bienes').val();
+        let cat_tipos_bienes = $('#tipo_bienes_ingreso').val();
+
+
+         $.ajax(
+                {
+                    method: "GET",
+                    url: "{% url 'declaracion:ingresos-add' %}",
+                    data: {
+                        'ingreso_enajenacion_bienes':ingreso_enajenacion_bienes,
+                        'cat_moneda_enajenacion_bienes':cat_moneda_enajenacion_bienes,
+                        'cat_tipos_bienes':cat_tipos_bienes,
+                        'observaciones':observaciones,
+                        'tipo_ingreso':tipo_ingreso,
+                        'folio_declaracion':folio_declaracion,
+                        'ingreso_extra':'EN'
+                    },
+                    success: function(response){
+                        if (response.error) {
+                            $('#error-enajenacion > p').text(response.error);
+                            $('#error-enajenacion').show();
+                        }else{
+                            $('#success-enajenacion > p').text(response.success);
+                            $('#success-enajenacion').show();
+                            var tr = document.createElement("tr");
+                            tr.id = response.id_ingreso+'_row';
+                            var td_monto = '<td class="monto">$'+response.monto+'</td>';
+                            var td_moneda = '<td class="moneda">'+response.moneda+'</td>';
+                            var td_tipo_bienes = '<td class="tipo_bienes">'+response.tipo_bienes+'</td>';
+                            var tipo_ingreso = "'EN'"
+                            var button_edit = '<td><button id="'+response.id_ingreso+'_editar" class="btn btn-link btn-link-plus" type="button" monto="'+response.monto+'" moneda="'+response.moneda_id+'" onclick="editarIngresoEnajenacion('+response.id_ingreso+','+response.id_tipo_bienes+')"><div name="divPersonaEditar"><img src="/static/src/img/editar.svg" class="svg"></div></button></td>';
+                            var button_delete='<td><button id="'+response.id_ingreso+'_eliminar" class="btn btn-link btn-link-plus deleteButonsFin" type="button" onclick="eliminarIngreso('+response.id_ingreso+','+tipo_ingreso+')"><div name="divPersonaEliminar"><img src="/static/src/img/eliminar.svg" class="svg"></div></button></td>'
+
+                            tr.innerHTML = td_monto+td_moneda+td_tipo_bienes+button_edit+button_delete;
+
+                            $("table#tab_enajenacion > tbody").append(tr);
+                           
+                            clean_formEnajenacion();
+                        }
+                    }
+                });
+        $('#no_data_enajenacion').hide();
+
+        sumarIngresosExtra();
+
+        
+    }
+    function clean_formAct(){
+        $('#id_ingreso_mensual_actividad').val('');
+        $('#id_razon_social_negocio').val('');
+        $('#id_tipo_negocio').val('');
+        $('#id_cat_moneda_actividad').val(101);
+        $('#formActPlus').hide();
+        $('#plus_buttonAct').show();
+        $('#cancel_buttonAct').hide();
+        $('#guardar_buttonAct').hide();
+        $('#update_buttonAct').hide();
+    }
+    function clean_formFin(){
+        $('#id_ingreso_mensual_financiera').val('');
+        $('#id_cat_moneda_financiera').val(101);
+        $('#formFinPlus').hide();
+        $('#plus_buttonFin').show();
+        $('#cancel_buttonFin').hide();
+        $('#guardar_buttonFin').hide();
+        $('#update_buttonFin').hide();
+    }
+    function clean_formServ(){
+        $('#id_ingreso_mensual_servicios').val('');
+        $('#id_tipo_servicio').val('');
+        $('#formServPlus').hide();
+        $('#id_cat_moneda_servicios').val(101);
+        $('#plus_buttonServ').show();
+        $('#cancel_buttonServ').hide();
+        $('#guardar_buttonServ').hide();
+        $('#update_buttonServ').hide();
+    }
+     function clean_formOtros(){
+        $('#id_ingreso_otros_ingresos').val('');
+        $('#id_cat_moneda_otros_ingresos').val(101);
+        $('#formOtrosPlus').hide();
+        $('#plus_buttonOtros').show();
+        $('#cancel_buttonOtros').hide();
+        $('#guardar_buttonOtros').hide();
+        $('#update_buttonOtros').hide();
+    }
+    function clean_formEnajenacion(){
+        $('#id_ingreso_enajenacion_bienes').val('');
+        $('#id_cat_moneda_enajenacion_bienes').val(101);
+        $('#formEnajenacionPlus').hide();
+        $('#plus_buttonEnajenacion').show();
+        $('#cancel_buttonEnajenacion').hide();
+        $('#guardar_buttonEnajenacion').hide();
+        $('#update_buttonEnajenacion').hide();
+    }
+     function hide_messages(){
+        $('#success-industrial').hide();
+        $('#error-industrial').hide();
+        $('#success-financiera').hide();
+        $('#error-financiera').hide();
+        $('#success-servicios').hide();
+        $('#error-servicios').hide();
+        $('#success-enajenacion').hide();
+        $('#error-enajenacion').hide();
+        $('#success-otro').hide();
+        $('#error-otro').hide();
+    }
+   
+    function show_formAct(){
+           
+        $('#formActPlus').show();
+        $('#plus_buttonAct').hide();
+        $('#cancel_buttonAct').show();
+        $('#guardar_buttonAct').show();
+        $('#update_buttonAct').hide();
+
+    }
+    function show_formFin(){
+           
+            $('#formFinPlus').show();
+            $('#plus_buttonFin').hide();
+            $('#cancel_buttonFin').show();
+            $('#guardar_buttonFin').show();
+            $('#update_buttonFin').hide();
+
+    }
+    function show_formServ(){
+       
+        $('#formServPlus').show();
+        $('#plus_buttonServ').hide();
+        $('#cancel_buttonServ').show();
+        $('#guardar_buttonServ').show();
+        $('#update_buttonServ').hide();
+
+    }
+
+    function show_formOtros(){
+           
+        $('#formOtrosPlus').show();
+        $('#plus_buttonOtros').hide();
+        $('#cancel_buttonOtros').show();
+        $('#guardar_buttonOtros').show();
+        $('#update_buttonOtros').hide();
+
+    }
+    function show_formEnajenacion(){
+           
+        $('#formEnajenacionPlus').show();
+        $('#plus_buttonEnajenacion').hide();
+        $('#cancel_buttonEnajenacion').show();
+        $('#guardar_buttonEnajenacion').show();
+        $('#update_buttonEnajenacion').hide();
+
+    }
+
+
+    /* End Actividad JS*/
+    $(function(){
+        $("form input[type=submit]").click(function() {
+            $("input[type=submit]", $(this).parents("form")).removeAttr("clicked");
+            $("button", $(this).parents("form")).removeAttr("clicked");
+            $(this).attr("clicked", "true");
+        });
+        $("form button").click(function() {
+            $("input[type=submit]", $(this).parents("form")).removeAttr("clicked");
+            $("button", $(this).parents("form")).removeAttr("clicked");
+            $(this).attr("clicked", "true");
+        });
+        $("form").submit(function(e){
+            if($("#no_aplica").prop("checked") != true){
+                e.preventDefault();
+                e.stopPropagation();
+                if($(this).attr("id") !== "form_registros_previos"){
+                    let faltantes = check_camposobligatorios();
+                    var submitValue = $("[clicked=true]").val();
+                    $(".guardarDeclaracion").prop('disabled', true);
+                    f_cargando('ms_campos_obligatorios');
+
+                    if(faltantes > 0 ){
+                        setTimeout(function(){
+                            $(".guardarDeclaracion").prop('disabled', false);
+                            $('#ms_campos_obligatorios').empty();
+                            $('#ms_campos_obligatorios').prepend('<div class="alert alert-danger alert-dismissable alert-link">'+
+                                '<button type="button" class="close" data-dismiss="alert">&times;</button>'+
+                                    '<strong>Favor de llenar todos los campos obligatorios marcados con asterisco * para continuar</strong></div>')
+                          }, 500);
+                    } else {
+                        var myin = document.createElement ("input");
+                        myin.setAttribute ("name","accion");
+                        myin.setAttribute ("style","display:none;");
+                        myin.setAttribute ("value",submitValue);
+                        this.appendChild(myin);
+                        this.submit();
+                    } 
+                }
+                else{
+                  $(this).find('button').each(function(e,i){$(this).attr('disabled','disabled');})
+                  mostrar_spinner_registros_previos();
+                  registros_previos_guardar();
+                  this.submit();
+                }
+
+            }
+        });
+    });
+
+    function check_camposobligatorios(){
+        var camposOb = [
+            {% for campo in campos_obligatorios %}
+            "{{campo}}"{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        console.log("Verificando " + camposOb.length + " campos obligatorios");
+        var obligatoriosSinVerificar = "";
+        var faltantes = 0;
+        var validar_obligatorios = true
+        for (let index = 0; index < camposOb.length; index++) {
+            const element =  camposOb[index];
+
+            if(element == "ingreso_anio_anterior"){
+                if(!$("ingreso_anio_anterior-no").checked){
+                    validar_obligatorios = false;
+                }
+            }
+
+            if(validar_obligatorios){
+                var domElements = $("[id*='id_ingresos_declaracion-"+element+"']");
+                for (let i = 0; i < domElements.length; i++) {
+                    if(domElements[i].value == ""){
+                        obligatoriosSinVerificar  += element + ", ";
+                        faltantes += 1;
+                    }
+                }
+            }
+        }
+        obligatoriosSinVerificar += + " " + faltantes + " faltan de llenar";
+        console.log(obligatoriosSinVerificar);
+        return faltantes;
+    }
+
+    
+</script>
+{% endblock %}

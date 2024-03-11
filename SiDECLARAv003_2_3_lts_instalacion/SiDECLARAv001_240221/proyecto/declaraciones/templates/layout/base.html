@@ -1,0 +1,1625 @@
+{% load static %}
+{% load personalizacion_tags %}
+<!DOCTYPE html>
+<html lang="es-mx">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="theme-color" content="#FFF">
+        <meta name="keywords" content="anticorrupción,gobierno,SiDECLARA,declaraciones">
+        <meta name="Description" content="Sistema SiDECLARA para declaraciones de intereses y patrimoniales de los servidores públicos.">
+        <title>{% block header_title %}SiDECLARA v001{% endblock %}</title>
+        <link rel='icon' href="{% static 'src/img/icon-seajal.png' %}" type='image/x-icon'/>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="{% static 'urls.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'base.css' %}">    
+        <link rel="stylesheet" type="text/css" href="{% static 'bootstrap-select.min.css' %}">     
+        <link rel="stylesheet" type="text/css" href="/media/personalizar/personalizar.css">
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+
+        {% block header_style %}
+          <style>
+            .empty {border: 2px solid red;}
+            .disable_puesto{background-color:#b5b5b9; opacity:1;}
+          </style>
+        {% endblock %}
+        {% block header_script %}{% endblock %}        
+    </head>
+    <body>
+        <div class="container-fluid body-container bgcolor-base">
+        {% block content_header %}
+        <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bgcolor-neutro mb-3">
+            <button class="navbar-toggler bgcolor-primario" type="button" data-toggle="collapse" data-target="#navbartoggler" aria-controls="navbartoggler" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            {% if user.is_superuser or user.is_staff %} 
+            
+            <div class="w-100 personalizar_clic">
+                <p class="color-alerta icono_personalizar"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-pencil-square" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456l-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                    <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                  </svg> Personalizar </p>
+            {% else %}
+            <a class="navbar-brand" href="/">
+            {% endif %}
+                <img class="nav-logo" src="/media/{% personalizacion 'imagen_logo' %}" alt="logo MODIFICADO">
+            {% if user.is_superuser or user.is_staff %} </div> {% endif %}
+            </a>
+          
+            <div class="collapse navbar-collapse" id="navbartoggler">
+              <ul class="navbar-nav ml-auto mt-2 mt-lg-0 mr-3">
+                <li class="nav-item">
+                    <a class="pt-md-5 nav-link nav-item-link color-primario {% if current_url_menu == 'inicio'%} nav-item-link-active {% endif %}" href="{% url 'inicio' %}">Inicio</a>
+                </li>
+                {% if user.is_authenticated %}
+                {% if not user.is_staff and not user.is_superuser  %}
+                <li class="nav-item">
+                    <a class="pt-md-5 nav-link nav-item-link color-primario font-weight-bold" href="{% url 'declaracion:declaracion' %}">Realizar declaración</a>
+                </li>
+                <li class="nav-item">
+                    <a class="pt-md-5 nav-link nav-item-link color-primario font-weight-bold" href="{% url 'declaraciones-previas' %}">Declaraciones previas</a>
+                </li>
+                {% else %}
+                    <li class="nav-item">    
+                        <a class="pt-md-5 nav-link nav-item-link color-primario font-weight-bold {% if current_url_menu == 'declarantes'%} nav-item-link-active {% endif %}" href="{% url 'declaracion:busqueda-declarantes' %}">Declarantes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="pt-md-5 nav-link nav-item-link color-primario font-weight-bold {% if current_url_menu == 'declaraciones'%} nav-item-link-active {% endif %}" href="{% url 'declaracion:busqueda-declaraciones' %}">Declaraciones</a>
+                    </li>
+                    <!--<li class="nav-item">
+                        <a class="pt-md-5 nav-link nav-item-link color-primario font-weight-bold {% if current_url_menu == 'graficas'%} nav-item-link-active {% endif %}" href="{% url 'declaracion:declaraciones-graficas' %}">Gráficas</a>
+                    </li>-->
+                    {% if user.is_superuser or user.is_staff %}
+                    <li class="nav-item">
+                        <a class="pt-md-5 nav-link nav-item-link color-primario font-weight-bold {% if current_url_menu == 'usuarios'%} nav-item-link-active {% endif %}" href="{% url 'declaracion:busqueda-usuarios' %}">Usuarios OIC</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                      <div class="text-center">
+                        <!--a class="pt-md-5 nav-link nav-item-link color-primario font-weight-bold" target="_blank"  href="/admin/sitio/sitio_personalizacion/1/change/">Personalizar</a-->
+                        <a role="button" class="pt-md-5 nav-link nav-item-link color-primario font-weight-bold" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          <p> Personalizar</p>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="/admin/sitio/sitio_personalizacion/1/change/">Datos de las entidades</a>
+                            <a class="dropdown-item" href="{% url 'personalizar_catareas' %}">Catálogo de areas</a>
+                            <a class="dropdown-item" href="{% url 'personalizar_catpuestos' %}">Catálogo de puestos</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="/admin/sitio/declaracion_faqs/">Preguntas frecuentes</a>
+                            <a class="dropdown-item" href="/admin/sitio/valores_smtp/">Valores del SMTP</a>
+                            <a class="dropdown-item" href="/admin/oauth2_provider/">Valores para API Oauth</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="/admin/sitio/sitio_personalizacion/1/change/">Imagen y colores</a>
+                            <a class="dropdown-item" href="/admin/declaracion/infopersonalfija/">Información personal Fija</a>
+
+                        </div>
+                      </div>
+                    </li>
+                    {% endif %}
+                {% endif %}
+                {% endif %}
+                <li class="nav-item">    
+                    <a class="pt-md-5 nav-link nav-item-link color-primario font-weight-bold  {% if current_url_menu == 'preguntas-frecuentes'%}nav-item-link-active {% endif %}" href="{% url 'preguntas-frecuentes' %}">Preguntas frecuentes</a>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="nav-item dropdown bgcolor-primario nav-menu">
+                    <div class="dropleft text-center">
+                        <button type="button" class="btn color-neutro font-weight-bold" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <img src="{% static 'src/img/SEAJAL-Declaraciones-Mi_cuenta-Icono_cuenta.png' %}" alt="Usuario" class="">
+                            <p> Mi cuenta</p>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="{% url 'declaracion:perfil' %}">Ir a mi cuenta</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'logout' %}">Cerrar sesión</a>
+                        </div>
+                    </div>
+                </li>
+                {% else %}
+                <li class="nav-item nav-menu bgcolor-primario p-2">
+                    <a class="nav-item" href="{% url 'login' %}">
+                        <figure class=" text-center">
+                            <img src="{% static 'src/img/candado-cerrado.svg' %}" alt="Inicia sesión" class="align-middle">
+                            <figcaption class="color-neutro font-weight-bold">
+                                Ingresar
+                            </figcaption>   
+                        </figure>
+                    </a>
+                </li>
+                {% endif %}
+              </ul>
+            </div>
+          </nav>
+        </header>
+        {% endblock %}
+        {% block content %}{% endblock %}
+        {% block content_footer %}
+        <footer>
+            <div class="row m-0 p-3 mt-3 fit_to_body w-100 bgcolor-primario body-footer">
+                <div class="col-md-2 offset-4  text-center pb-2">
+                    {% if user.is_superuser or user.is_staff%} 
+                    <a class="color-neutro" href="/admin/sitio/sitio_personalizacion/1/change/#id_imagen_sublogo" alt="Personalizar" target="_blank">
+                    <div class="w-100 personalizar_clic">
+                        <p class="color-alerta icono_personalizar"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-pencil-square" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456l-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                            <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                          </svg> Personalizar </p>
+                    {% endif %}     
+                    <img class="img-responsive" src="/media/{% personalizacion 'imagen_sublogo' %}" alt="logo secundario" style="max-width: 500px;">
+                    {% if user.is_superuser or user.is_staff %} </div></a> {% endif %}
+                </div>
+
+                <div class="col-md-2 offset-md-4 text-sm-center color-neutro font-weight-lighter fs-75">
+                    {% if user.is_superuser or user.is_staff%} 
+                    <a class="color-neutro" href="/admin/sitio/sitio_personalizacion/1/change/#id_nombre_institucion" alt="Personalizar" target="_blank">
+                    <div class="w-100 personalizar_clic">
+                        <p class="color-alerta icono_personalizar"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-pencil-square" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456l-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                            <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                          </svg> Personalizar </p>
+                    {% endif %}     
+                        <p class="m-0">{% personalizacion "nombre_institucion" %} </p>
+                        <p class="m-0">{% personalizacion "direccion_calle" %},  C.P. {% personalizacion "direccion_cp" %} </p>
+                        <p class="m-0">{% personalizacion "direccion_ciudad" %}, {% personalizacion "direccion_estado" %}, México.</p>
+                        <p class="m-0 pt-3">Teléfonos {% personalizacion "direccion_telefonos" %}</p>
+                        <p class="m-0">{% personalizacion "direccion_correos" %}</p>
+                    {% if user.is_superuser or user.is_staff %}</div></a>{% endif %} 
+                    </div>
+                </div>
+            </div>
+        </footer>
+        {% endblock %}
+        </div>
+        <!--script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script-->
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+        <script type="text/javascript" src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+        <!--script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/locale/af.min.js"></script-->
+        <script type="text/javascript" src="{% static 'moment.js' %}"></script>
+        <script src="{% static 'sizzle.js' %}"></script>
+        <script type="text/javascript" src="{% static 'bootstrap-datetime.js' %}"></script>
+        <!--script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></scrip-->
+        <script type="text/javascript" src="{% static 'jquery.are-you-sure.js' %}"></script>
+        <!--script type="text/javascript" src="{% static 'app.js' %}"></script-->
+        <script type="text/javascript" src="{% static 'graficas.js' %}"></script>
+        <script type="text/javascript" src="{% static 'validacion.js' %}"></script>
+        <script type="text/javascript" src="{% static 'declaracion_js/declaraciones.js' %}"></script>   
+        <script type="text/javascript" src="{% static 'declaracion_js/enter-key.js' %}"></script>
+        <script type="text/javascript" src="{% static 'declaracion_js/loader.js' %}"></script>
+        <script type="text/javascript" src="{% static 'declaracion_js/login.js' %}"></script>
+        <script type="text/javascript" src="{% static 'declaracion_js/nacionalidades.js' %}"></script>
+        <script type="text/javascript" src="{% static 'declaracion_js/no_aplica.js' %}"></script>
+        <script type="text/javascript" src="{% static 'declaracion_js/validacion.js' %}"></script>
+        <script type="text/javascript" src="{% static 'declaracion_js/widgets.js' %}"></script>
+        <script type="text/javascript" src="{% static 'declaracion_js/boostrap.min.js' %}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+        <script type="text/javascript">
+
+        function check_terminos_condiciones(){
+          if($("#checkbox_crear_cuenta"). is(":checked")){
+            $('#btn_crear_cuenta').prop( "disabled", false );
+          }
+          else{
+            $('#btn_crear_cuenta').prop( "disabled", true );
+          }
+        }
+
+        function pruebas(){
+            var element = $(document).find("span");
+            alert(element.id);
+        }
+        // función para usar el jquery select2 en nacionoalidades 
+        function agregar_nacionalidad_btn() {
+            $('.multiples-nacionalidades select').select2('open');
+        }
+
+
+        function borrarRegistro(url, redirect, id) {
+            var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+            function csrfSafeMethod(method) {
+                return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+            }
+
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+
+            if (confirm('¿Está seguro de eliminar el registro?') == true) {
+              $.ajax({
+                  url : url,
+                  type : "POST",
+                  success : function(json) {
+                    $("#borrar-registro-" + id).hide()
+                  },
+                  error : function(xhr,errmsg,err) {
+                      console.log(xhr.status + ": " + xhr.responseText);
+                  }
+              });
+              location.reload();
+            } else {
+
+              return false;
+            }
+          };
+
+          function f_cargando(elementName){
+            $('#'+elementName).empty();
+            $('#'+elementName).prepend('<center><div class="spinner-border" style="width:3rem;height:3rem;color:#015f78;" role="status">'+
+                                        '<span class="sr-only">Loading...</span>'+
+                                        '</div></center>'); 
+          }
+
+          function f_reload_page(){
+            f_cargando('ms_campos_obligatorios');
+            window.location.reload(true);
+          }
+
+          ///////////////////////////FUNCIONES PRECARGA REGISTROS DECLARACIÓN PREVIA/////////////////////////////////
+
+          function obtener_registros_tabla(){
+            var current_url = "{{current_url}}".replace("declaracion:", "");
+            var trTableRegistros = $("#"+current_url+"_tableRegistrosPrevios").find("tr.registroPrevio");
+
+            {% if ingresos %}
+            var idRegistroPrevios = []
+
+            trTableRegistros.each(function(index, objct){
+              var id = $(objct).attr("id").replace("borrar-registro-previo-", "");
+              var tipo = $(objct).attr("tipo");
+
+              var tipoAndId={ 'id': id, 'tipo': tipo}
+              idRegistroPrevios.push(tipoAndId);
+
+            });
+            {% else %}
+            var idRegistroPrevios = []
+
+            trTableRegistros.each(function(index, objct){
+              var id = $(objct).attr("id").replace("borrar-registro-previo-", "");
+              idRegistroPrevios.push(id);
+            });
+            {% endif%}
+            return idRegistroPrevios
+          }
+          
+          function registros_previos_guardar(){
+            var registrosPrevios = obtener_registros_tabla();
+            $("#registrosPrevios").val("");
+            $("#registrosPrevios").val(JSON.stringify(registrosPrevios));
+            
+          }
+
+          function mostrar_spinner_registros_previos(){
+            var divInfo = $(".tu-informacion-previa");
+            divInfo.empty();
+            divInfo.html("<center style= \"margin-top: 10%;\">"+
+                        "<div class=\"spinner-grow\" style=\"width: 6rem;height: 6rem;\" role=\"status\">"+
+                        "<span class=\"sr-only\">Loading...</span>"+
+                        "</div></center>");
+            $(".btnEliminarRegistroPrevio").each(function(e,r){console.log($(r).attr('disabled','disabled'))})
+          }
+
+          
+
+          ///////////////////////////FUNCIONES DE BIENES PERSONAS/////////////////////////////////
+          /*
+            Obtiene inputs del formulario
+          */
+         function obtenerObjcFormPersona(identificator){
+            var inputs = {}, identificadores = [
+                "-nombres",
+                "-apellido1",
+                "-apellido2",
+                "-razon_social",
+                "-rfc",
+                "-es_fisica",
+                "-es_fisica-m",
+                "-es_fisica-f",
+                "-tipo_relacion"
+            ];
+
+            $.each(identificadores, function(indice, valor){
+              var nombre = valor.replace("-","");
+              if(nombre == "es_fisica-m"){
+                nombre="radioMoral";
+              }
+              else if(nombre == "es_fisica-f"){
+                nombre="radioFisica";
+              }
+              inputs[nombre]= $("#id_"+identificator+valor);
+            })
+
+            return {"inputs":inputs, "identificadores": identificadores};
+         }
+
+          /*
+            Muestra formulario Bien persona
+          */
+          function limpiarFormularioPersona(identificadorCampos){
+            var elementosForm = obtenerObjcFormPersona(identificadorCampos);
+            $.each(elementosForm.inputs, function(key,objectForm){
+                if(!key.includes("radio")){
+                  objectForm.val("");
+                }
+            });
+          }
+
+          //Controla la visibilidad del registro seleccionado
+          function classTableRow(idTable){
+            $(idTable+" tr").each(function(){
+              $(this).removeClass("table-active");
+            })
+          }
+
+          /*
+            Limpia y muestra el formulario para crear una nueva persona
+          */
+          function mostrarFormularioBienPersona(objtButton){
+            var oButton = $(objtButton);
+            var identificarAgregarNuevo = oButton.attr("id").split("-");
+
+            //Se limpian los campos del formulario, se remueve las clases de la tabla y el campo oculto
+            //que guarda el ID de la "otra_persona" = InfoVar
+            limpiarFormularioPersona(identificarAgregarNuevo[0]);
+            classTableRow("#"+oButton.attr("id").replace("agregar","tableBienesPersonas"));
+
+            $("#"+identificarAgregarNuevo[0]+"-"+identificarAgregarNuevo[1]+"-idOtraPersona_InfoVar").val("")
+            $("#rowId").val("");
+            var txt_divTipoRelacion = "#"+oButton.attr("id").replace("agregar","divTipoRelacion");
+            $(txt_divTipoRelacion+" :radio:checked").prop('checked', false);
+            
+            //Se ocultan o muestran elmentos necesarios como el formulario y los botones de guardar/agregar
+            $("#"+oButton.attr("id").replace("agregar","tipoRelacion")).show();
+            $("#"+oButton.attr("id").replace("agregar","formulario")).show();
+            $("#"+oButton.attr("id").replace("agregar","guardar")).show();
+            $("#"+oButton.attr("id").replace("agregar","cancelar")).show();
+            oButton.html("Limpiar formulario")
+          }
+
+          /*
+            Cancela el llenado del formulario de la persona
+          */
+          function cancelarFormularioBienPersona(objtButton){
+            var oButton = $(objtButton);
+            var identificarCancelar = oButton.attr("id").split("-");
+
+            limpiarFormularioPersona(identificarCancelar[0]);
+            classTableRow("#"+oButton.attr("id").replace("cancelar","tableBienesPersonas"));
+
+            $("#"+oButton.attr("id").replace("cancelar","formulario")).hide();
+            $("#"+oButton.attr("id").replace("cancelar","guardar")).hide();
+            $("#"+oButton.attr("id")).hide();
+            $("#"+oButton.attr("id").replace("cancelar","agregar")).html("<img src=\"{% static 'src/img/plus.svg' %}\" alt=\"agregar\" class=\"svg\"> Agregar otro")
+          }
+
+          /*  
+            Obtiene los datos del registro seleccionado y lo carga en el formular de persona 
+          */
+          function obtenerDatoSeleccionadoBienPersona(objtPersona){
+            var oPersona = $(objtPersona);
+
+            var identificadorIDBtnTableEditar = oPersona.attr("id").split("-");
+            var personaFisica = true ? oPersona.attr("es_fisica") === 'True' || oPersona.attr("es_fisica") === 'true' : false;
+            var personaRFC = oPersona.attr("rfc");
+
+            var elementosForm = obtenerObjcFormPersona(identificadorIDBtnTableEditar[0]); 
+            limpiarFormularioPersona(identificadorIDBtnTableEditar[0]);
+
+            var declartacionId = oPersona.attr("declaracion");
+            var bienMuebleId = oPersona.attr("bienMueble_id");
+            var tipoRelacion = oPersona.attr("tipo_relacion");
+
+            $("#"+identificadorIDBtnTableEditar[0]+"-"+identificadorIDBtnTableEditar[1]+"-"+declartacionId+"-"+bienMuebleId+"-tipoRelacion").show();
+            $("#"+identificadorIDBtnTableEditar[0]+"-"+identificadorIDBtnTableEditar[1]+"-"+declartacionId+"-"+bienMuebleId+"-formulario").show();
+            $("#"+identificadorIDBtnTableEditar[0]+"-"+identificadorIDBtnTableEditar[1]+"-"+declartacionId+"-"+bienMuebleId+"-guardar").show();
+            $("#"+identificadorIDBtnTableEditar[0]+"-"+identificadorIDBtnTableEditar[1]+"-"+declartacionId+"-"+bienMuebleId+"-cancelar").show();
+            $("#"+identificadorIDBtnTableEditar[0]+"-"+identificadorIDBtnTableEditar[1]+"-idOtraPersona_InfoVar").val(identificadorIDBtnTableEditar[4]);
+            $("#"+identificadorIDBtnTableEditar[0]+"-"+identificadorIDBtnTableEditar[1]+"-idOtraPersona_InfoVar").val(identificadorIDBtnTableEditar[4]);
+
+            
+            classTableRow("#"+identificadorIDBtnTableEditar[0]+"-"+identificadorIDBtnTableEditar[1]+"-"+declartacionId+"-"+bienMuebleId+"-tableBienesPersonas");
+            oPersona.closest("tr").addClass("table-active");
+            $("#rowId").val(oPersona.attr("bienPersona_id"));
+
+            if(personaFisica){
+              //Nombres y apellidos
+              var personaNombres = oPersona.attr("nombres");
+              var personaP = oPersona.attr("apellido1");
+              var personaM = oPersona.attr("apellido2");
+
+              radioTPersona('true', identificadorIDBtnTableEditar[0]+"-es_fisica");
+
+              //Asignar los valores al formulario
+              elementosForm.inputs.radioMoral.prop('checked',false);
+              elementosForm.inputs.radioFisica.prop('checked',true);
+              elementosForm.inputs.nombres.val(personaNombres);
+              elementosForm.inputs.apellido1.val(personaP);
+              elementosForm.inputs.apellido2.val(personaM);
+            }
+            else{
+              //Razón social de la tabla
+              var personaRS = oPersona.attr("razon_social");
+              
+              radioTPersona('false', identificadorIDBtnTableEditar[0]+"-es_fisica");
+              //Asignar los valores al formulario
+              elementosForm.inputs.radioMoral.prop('checked',true);
+              elementosForm.inputs.radioFisica.prop('checked',false);
+              elementosForm.inputs.razon_social.val(personaRS);
+            }
+
+            elementosForm.inputs.rfc.val(personaRFC);
+
+            if(tipoRelacion){
+              $("#id_bienes_personas-tipo_relacion-"+tipoRelacion).prop('checked',true);
+            }
+          }
+
+          /*
+            Función que guarda los datos de la persona
+          */
+          function guardarFormularioBienPersona(objtButton){
+            var oButton = $(objtButton);
+            var identificarGuardarRegistro = oButton.attr("id").split("-");
+            var tablePersona = $("#"+oButton.attr("id").replace("guardar","divTableBienesPersonas"));
+            var camposFormulario = obtenerObjcFormPersona(identificarGuardarRegistro[0]);
+            var bienIdAttr = oButton.attr("bienId").replace(/\s/g,'');
+            var guardadoVacio = 0;
+            
+            var idOtraPersona = $("#"+identificarGuardarRegistro[0]+"-"+identificarGuardarRegistro[1]+"-idOtraPersona_InfoVar").val();
+            var txt_divTipoRelacion = "#"+oButton.attr("id").replace("guardar","divTipoRelacion");
+            var radioTipoRelacion = $(txt_divTipoRelacion+" :radio:checked").val();
+
+            //Corresponde al catalgo de cat_tipoparticipacion 
+            var tipoParticipacion = {
+              "copropietario": 8,
+              "propietario_anterior": 10
+            }
+
+            dataAjax = {
+              csrfmiddlewaretoken: '{{ csrf_token }}',
+              html_name: identificarGuardarRegistro[0]+"-"+identificarGuardarRegistro[1],
+              declaracion: identificarGuardarRegistro[2],
+              bienId: bienIdAttr,
+              bienPersonaId: 0 ? typeof parseInt($("#rowId").val()) == NaN: $("#rowId").val(),
+              current_url: oButton.attr("current_url"),
+              title: oButton.attr("title"),
+              label: oButton.attr("label"),
+              tipoParticipacion: oButton.attr("tipoParticipacion") ? oButton.attr("tipoParticipacion") : tipoParticipacion[identificarGuardarRegistro[0]],
+              tipoRelacion: radioTipoRelacion ? radioTipoRelacion : null,
+              editar_id:idOtraPersona
+            }
+
+            $.each(camposFormulario.inputs, function(key, input){
+              valor = input.val();
+              if((typeof key === "undefined" || key == "") && input.is(":visible") && key != "apellido2"){
+                guardadoVacio = guardadoVacio +1;
+                valor = input.val();
+              }
+              else{
+                if(key.includes("radio") && key=="radioFisica"){
+                  valor = input.is(':checked');
+                  key = "es_fisica";
+                }
+                dataAjax[identificarGuardarRegistro[0]+"-"+key] = valor;
+              }
+            });
+
+            if(guardadoVacio >= 1){
+              alert("No puede guardar este registro en blanco");
+            }
+            else{
+              if(identificarGuardarRegistro[3] !== "0"){
+                tablePersona.empty();
+                tablePersona.html("<div class=\"text-center\"><div class=\"spinner-border text-success\" role=\"status\" style=\"width: 3rem; height: 3rem;\">"+
+                                  "<span class=\"sr-only\">Loading...</span>"+
+                                "</div></div>")
+                //Obtener todos los hijos tipo input y/o radio  para enviar a petición
+                $.ajax({ 
+                    method: "POST",
+                    data:dataAjax,
+                    url: "{% url 'declaracion:bienPersona_guardar' %}",
+                    success: function(data) {
+                      tablePersona.empty();
+                      tablePersona.html(data.htmlTable);
+                    }, 
+                    error: function(error_data) {
+                      console.log("error_data-------------->",error_data); 
+                    } 
+                });
+              }
+              else{
+                var nombreCompleto_temporal = "";
+                var rfc = dataAjax[identificarGuardarRegistro[0]+"-rfc"];
+                var tableBienesPersonas = $("#"+oButton.attr("id").replace("guardar","tableBienesPersonas"));
+                tableBienesPersonas.find("#sinDatos_row").remove();
+
+                if(dataAjax[identificarGuardarRegistro[0]+"-es_fisica"]){
+                  nombreCompleto_temporal = dataAjax[identificarGuardarRegistro[0]+"-nombres"] +" "+
+                  dataAjax[identificarGuardarRegistro[0]+"-apellido1"] + " " +
+                  dataAjax[identificarGuardarRegistro[0]+"-apellido2"];
+                }
+                else{
+                  nombreCompleto_temporal = dataAjax[identificarGuardarRegistro[0]+"-razon_social"];
+                }
+
+                var idTemporal = dataAjax["bienPersonaId"];
+                if(idTemporal == 0){
+                  idTemporal = tableBienesPersonas.find("tr").length;
+                }
+
+                var idBtnTexto = dataAjax["html_name"]+'-'+tipoParticipacion[identificarGuardarRegistro[0]]+'-0-'+idTemporal+'-0-';
+                var btnRegistroTemporal_existente = tableBienesPersonas.find("#"+idBtnTexto+"editar");
+
+                if($("#"+idBtnTexto+"editar").length > 0){
+                  var tdRegistroTemporal_existente = btnRegistroTemporal_existente.closest("tr").children().slice(0, 2) // Solo obtenemos las primeras columnas para hacer el cambio visible
+                  $(tdRegistroTemporal_existente[0]).html(nombreCompleto_temporal);//Se modifica el nombre
+                  $(tdRegistroTemporal_existente[1]).html(rfc);//Se modifca el RFC
+                  //Se actualizaon los atributos necesarios
+                  btnRegistroTemporal_existente.attr("nombres",dataAjax[identificarGuardarRegistro[0]+"-nombres"]);
+                  btnRegistroTemporal_existente.attr("apellido1",dataAjax[identificarGuardarRegistro[0]+"-apellido1"]);
+                  btnRegistroTemporal_existente.attr("apellido2",dataAjax[identificarGuardarRegistro[0]+"-apellido2"]);
+                  btnRegistroTemporal_existente.attr("razon_social",dataAjax[identificarGuardarRegistro[0]+"-razon_social"]);
+                  btnRegistroTemporal_existente.attr("rfc",dataAjax[identificarGuardarRegistro[0]+"-rfc"]);
+                  btnRegistroTemporal_existente.attr("tipo_relacion",dataAjax["tipoRelacion"]);
+                }
+                else{
+                  var idBienMueble = dataAjax["editar_id"] ? dataAjax["editar_id"] : 0;
+                  var tr= ("<tr style=\"font-weight: normal;display: table;width: 100%;table-layout: fixed;\">"+
+                      "<td style=\"width: 60%;\">"+nombreCompleto_temporal+"</td>"+
+                      "<td style=\"width: 20%;\">"+rfc+"</td>"+
+                      "<td style=\"width: 10%;\">"+
+                          "<button "+
+                              'id="'+idBtnTexto+'editar"'+
+                              "class=\"btn btn-link btn-link-plus\""+
+                              "type=\"button\""+
+                              "name=\"editarPersonaBtn\""+
+                              'es_fisica="'+dataAjax[dataAjax["html_name"]]+'"'+
+                              'nombres="'+dataAjax[identificarGuardarRegistro[0]+"-nombres"]+'"'+
+                              'apellido1="'+ dataAjax[identificarGuardarRegistro[0]+"-apellido1"] +'"'+
+                              'apellido2="'+ dataAjax[identificarGuardarRegistro[0]+"-apellido2"] +'"'+
+                              'razon_social="'+ dataAjax[identificarGuardarRegistro[0]+"-razon_social"] +'"'+
+                              'tipo_relacion="'+ dataAjax["tipoRelacion"] +'"'+
+                              'rfc="'+ dataAjax[identificarGuardarRegistro[0]+"-rfc"] +'"'+
+                              'title="'+dataAjax["title"]+'"'+
+                              'label="'+dataAjax["label"]+'"'+
+                              'bienPersona_id="'+ tableBienesPersonas.find("tr").length +'"'+
+                              'bienMueble_id="'+ idBienMueble +'"'+
+                              'declaracion="'+ dataAjax["declaracion"] +'"'+
+                              'onclick="obtenerDatoSeleccionadoBienPersona(this)"'+
+                              "temporalId="+tableBienesPersonas.find("tr").length+
+                          ">"+
+                              "<div name=\"divPersonaEditar\">"+
+                                "<img src=\"{% static 'src/img/editar.svg'%}\" class=\"svg\">"+
+                              "</div>"+
+                          "</button>"+
+                      "</td>"+
+                      "<td style=\"width: 10%;\" class=\"text-center\">"+
+                          "<button " +
+                              'id="'+idBtnTexto+'eliminar"'+
+                              "class=\"btn btn-link btn-link-plus\""+
+                              "type=\"button\""+
+                              "name=\"eliminarPersonaBtn\""+
+                              'title="'+dataAjax["title"]+'"'+
+                              'label="'+dataAjax["label"]+'"'+
+                              'bienMueble_id="'+ idBienMueble +'"'+
+                              'declaracion="'+ dataAjax["declaracion"] +'"'+
+                              "data-toggle=\"modal\""+
+                              "data-target=\"#eliminarPersona\""+
+                              'data-id="'+idBtnTexto+'eliminarPersonaBtn"'+
+                              "temporalId="+tableBienesPersonas.find("tr").length+
+
+                          ">"+
+                              "<div name=\"divPersonaEliminar\">"+
+                                  "<img src=\"{% static 'src/img/eliminar.svg'%}\" class=\"svg\">"+
+                              "</div>"+
+                          "</button>"+
+                      "</td>"+
+                  "</tr>");
+                  tableBienesPersonas.append(tr);
+                }
+
+                guardarTemporalPersonasTabla(tableBienesPersonas, identificarGuardarRegistro[0]);
+              }
+              //Acciones del front para mostrar cambios
+              limpiarFormularioPersona(identificarGuardarRegistro[0]);
+              $("#"+oButton.attr("id").replace("guardar","agregar")).html("<img src=\"{% static 'src/img/plus.svg' %}\" alt=\"agregar\" class=\"svg\"> Agregar otro")
+              $("#"+oButton.attr("id").replace("guardar","formulario")).hide();
+              $("#"+oButton.attr("id").replace("guardar","cancelar")).hide();
+              $("#"+oButton.attr("id")).hide();
+
+            }
+          }
+
+          /*
+            Función para guardar los registros temporalmente en variable Global o_BIENESPERSONAS
+          */
+          var o_BIENESPERSONAS = {"copropietario":[],"propietario_anterior":[]};
+
+          function guardarTemporalPersonasTabla(tablePersona, htmlName){
+            var idTablaText = tablePersona.attr("id");
+            var btnTabla = $("#"+idTablaText+" button");
+            var camposColeccion =  obtenerObjcFormPersona(htmlName);
+            var nuevosDatos = {}
+            o_BIENESPERSONAS[htmlName] = []
+
+            if(btnTabla.length > 0){
+              btnTabla.each(function(index, objct){
+                var idButtonTexto = $(objct).attr("id");
+                if(idButtonTexto.indexOf("editar") > 0){
+                  //Se recorren los identificadores para obtener los atributos del btn con los valores
+                  //que el usuario guarda temporalmente
+                  $.each(camposColeccion["identificadores"], function(i_index, i_value){
+                    var i_valueTexto = htmlName +""+i_value;
+                    nuevosDatos[i_valueTexto] = $(objct).attr(i_value.replace("-",""));
+                  });
+                  o_BIENESPERSONAS[htmlName].push(nuevosDatos);
+                  nuevosDatos = {}
+                } 
+              });
+            }
+            $("#id_"+htmlName+"-es_fisica_datos").val(JSON.stringify(o_BIENESPERSONAS[htmlName]));
+          }
+          
+          //Muestra modal de confirmación y guarda temporalmente el id del registro
+          $('#eliminarPersona').on('show.bs.modal', function (e) {
+              $("#spinnerEliminarConfirm").hide();
+              var id = $(e.relatedTarget).data('id');
+              $('#rowId').val(id);
+          });
+          
+          //Función que se ejecuta cuando el usuario confirma la acción de eliminar
+          $('#remove-button').click(function() {           
+              var delid = $('#rowId').val();
+              var identificadorId = delid.split("-");
+              var btnEliminarTable  = $("#"+delid.replace("eliminarPersonaBtn","eliminar")); //Se obtiene el obj del btn eliminar del registro seleccionado
+              var declartacionId = btnEliminarTable.attr("declaracion");
+              var bienMuebleId = btnEliminarTable.attr("bienMueble_id");
+              var tituloPersona = btnEliminarTable.attr("title");
+              var tablePersona = $("#"+identificadorId[0]+"-"+identificadorId[1]+"-"+declartacionId+"-"+bienMuebleId+"-tableBienesPersonas") //Tabla de los registros que se actualizará
+              
+              $("#spinnerEliminarConfirm").show();
+              $("#btnEliminarConfirm").hide();
+              
+              var parametros = {
+                delid: delid,
+                lenghtData: btnEliminarTable.closest("tbody").children().length -1,
+                tablePersona: tablePersona,
+                participacion: identificadorId[0],
+                esFisica: identificadorId[1], 
+                declartacionId: declartacionId,
+                bienMuebleId:bienMuebleId
+              }
+
+              if(bienMuebleId == 0){
+                acciones_eliminar_persona(parametros);
+                guardarTemporalPersonasTabla(tablePersona, identificadorId[0])
+              }
+              else{
+                //Solicitd POST para eliminar el registro si existe ya registrado un bien     
+                $.ajax({ 
+                  method: "POST",
+                  data:{
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    activo_id: identificadorId[3],
+                    bienPersona_id: identificadorId[5],
+                    declaracion: declartacionId,
+                    title: tituloPersona,
+                    label: btnEliminarTable.attr("label")
+                  },
+                  url: "{% url 'declaracion:bienPersona_eliminar' %}",
+                  success: function(data) {
+                    parametros.lenghtData=data.dataLength;
+                    acciones_eliminar_persona(parametros)
+                  }, 
+                  error: function(error_data) {
+                    console.log("error_data-------------->",error_data); 
+                  } 
+                });
+              }
+          });
+
+          function acciones_eliminar_persona(parametros){
+            $("#spinnerEliminarConfirm").hide();
+            $("#btnEliminarConfirm").show()
+            $("#eliminarPersona").modal("hide");
+            $("#"+parametros.delid.replace("eliminarPersonaBtn", "eliminar")).closest("tr").remove();
+            
+            if(parametros.lenghtData == 0){
+              parametros.tablePersona.append("<tr id=\"sinDatos_row\" style=\"font-weight: normal;display: table;width: 100%;table-layout: fixed;\"><td colspan=\"3\"><center> Sin datos que mostrar </center></td></tr>");
+            }
+
+            $("#"+parametros.participacion+"-"+parametros.esFisica+"-"+parametros.declartacionId+"-"+parametros.bienMuebleId+"-tipoRelacion").hide();
+            $("#"+parametros.participacion+"-"+parametros.esFisica+"-"+parametros.declartacionId+"-"+parametros.bienMuebleId+"-formulario").hide();
+            $("#"+parametros.participacion+"-"+parametros.esFisica+"-"+parametros.declartacionId+"-"+parametros.bienMuebleId+"-guardar").hide();
+            $("#"+parametros.participacion+"-"+parametros.esFisica+"-"+parametros.declartacionId+"-"+parametros.bienMuebleId+"-cancelar").hide();
+            $("#"+parametros.participacion+"-"+parametros.esFisica+"-"+parametros.declartacionId+"-"+parametros.bienMuebleId+"-agregar").show();
+          }
+
+          ///////////////////////////FUNCIONES GRAFICAS/////////////////////////////////
+
+        //Carga información de gráficas cuando el usuario es staff en declaraciones
+        function graficas_ajax_api(data){
+            var canvas1 = document.getElementById("chart_grafica_usuarios_declaraciones_general");
+            var canvas2 = document.getElementById("chart_grafica_usuario_declaraciones_fechas");
+
+            if(canvas1 || canvas2){
+              document.getElementById("grafica_usuarios_declaraciones_general").innerHTML = '&nbsp;';
+              document.getElementById("grafica_usuarios_declaraciones_general").innerHTML = '<canvas id="chart_grafica_usuarios_declaraciones_general"></canvas>';
+              
+              document.getElementById("grafica_usuario_declaraciones_fechas").innerHTML = '&nbsp;';
+              document.getElementById("grafica_usuario_declaraciones_fechas").innerHTML = '<canvas id="chart_grafica_usuario_declaraciones_fechas"></canvas>';
+            }
+
+            $.ajax({ 
+              method: "GET",
+              data: data,
+              url: "{% url 'declaracion:api-graficas-data' %}",
+              success: function(data) {
+                $("#filtro_anio_graficas div.row.bootstrap4-multi-input").children().each(function(){
+                  var name_input=$(this).children()[0].name;
+                  if(name_input != "anio_filtro_year"){
+                    $(this).css("display","none");
+                  }
+                });
+                drawBarGraph(data, 'chart_grafica_usuarios_declaraciones_general');
+                drawLineGraph(data, 'chart_grafica_usuario_declaraciones_fechas');
+              }, 
+              error: function(error_data) {
+                console.log(error_data); 
+              } 
+            });
+        }
+
+        function getMunicipios(id_dom_entidad, id_dom_municipio=null) {
+            var entidad_federativa = $(id_dom_entidad).val();
+            var url = $("#formInfoPersonal").attr("data-municipios-url");
+
+            if (entidad_federativa) {
+                //Eliminamos las opciones anteriores del select
+                $("#id_domicilio-municipio").html("");
+                $.ajax({
+                    url: "{% url 'declaracion:lista_municipios' %}",
+                    type: "GET",
+                    data: {
+                        "entidad_federativa": entidad_federativa,
+                    },
+                    success: function(response){
+                        if(id_dom_municipio){
+                            $(id_dom_municipio).html(response.municipios);
+                            $(id_dom_municipio).trigger("change");
+                        }
+                    }
+                });
+            } else {
+                if(id_dom_municipio){
+                    $(id_dom_municipio).html("<option value='' selected='selected'>---------</option>");
+                    $(id_dom_municipio).trigger("change");
+                }
+            }
+        }
+
+        function getPuestos(area_id, puesto_id, valor = '') {
+            var area = $(area_id).val();
+            var puestoUsuario = "{{puesto_id}}"
+            var url = $("#formulario_registro").attr("data-puestos-url");
+            //Add Jeremias  - 10/07/2023
+            var disablePuestoEncargoDeclaracion = true ? "{{ ENABLE_PUESTO_ENCARGO_DECLARACION}}" =="True" : false;
+            
+            if (area) {
+              //Eliminamos las opciones anteriores del select
+              $(puesto_id).html("-----------------");
+              $.ajax({
+                url: "{% url 'declaracion:lista_puestos' %}",
+                type: "GET",
+                data: {
+                  "area": area,
+                },
+                success: function(response) { 
+                      $(area_id).prop("disabled", false);                   
+                      $(puesto_id).prop('disabled', false);                  
+                      var select = $('.selectpicker');                                                 
+                      // Agrega las opciones al select
+                      response.Puestos.forEach(function(opcion) {
+                        //select.append($('<option>').attr('value', opcion.value).text(opcion.text));
+                          select.append($('<option>').attr('value', opcion.value).attr('nivel', opcion.nivel).text(opcion.text));
+                        });
+                        // Actualiza el selectpicker después de agregar las opciones
+                        select.selectpicker('refresh');                        
+                        $(puesto_id).val(puestoUsuario);                       
+                        // Refresh the select picker to update the UI
+                        $(puesto_id).selectpicker('refresh');
+                        
+                        if(!disablePuestoEncargoDeclaracion) {
+                          $("#id_datos_encargo_actual-cat_puestos").prop('disabled', true);   
+                          $("#id_datos_encargo_actual-cat_puestos").addClass('disable_puesto');                                       
+                          $("#id_datos_encargo_actual-cat_areas").prop('disabled', 'disabled');
+                          $("#id_datos_encargo_actual-cat_puestos").selectpicker('refresh');
+                        }
+                }
+
+              });
+            } 
+            else {
+                $(puesto_id).html("<option value='' selected='selected'>---------</option>");
+                $(puesto_id).trigger("change");
+                $(puesto_id).prop('disabled', 'disabled');
+            }
+
+            
+        }
+
+
+        function getTiposInversionesEspecificos(){
+            var tipo_inversion = $("#id_inversiones-cat_tipos_inversiones").val();
+            var url = $("#formInversiones").attr("data-tiposInversiones-url");
+
+            if (tipo_inversion) {
+                //Eliminamos las opciones anteriores del select
+                $("#id_inversiones-cat_tipos_especificos_inversiones").html("");
+                $.ajax({
+                    url: "{% url 'declaracion:lista_tiposinversionesespecificas' %}",
+                    type: "GET",
+                    data: {
+                        "tipo_inversion": tipo_inversion,
+                    },
+                    success: function(response){
+                      $("#id_inversiones-cat_tipos_especificos_inversiones").html(response.inversiones_especificas);
+                      $("#id_inversiones-cat_tipos_especificos_inversiones").trigger("change");
+                    }
+                });
+            } else {
+                $("#id_inversiones-cat_tipos_especificos_inversiones").html("<option value='' selected='selected'>---------</option>");
+                $("#id_inversiones-cat_tipos_especificos_inversiones").trigger("change");
+            }
+        }
+        $('.act > div.row').last().css("border", "None");
+        $('.fin > div.row').last().css("border", "None");
+        $('.serv > div.row').last().css("border", "None");
+        $('.enaj > div.row').last().css("border", "None");
+        $('.otros > div.row').last().css("border", "None");
+
+        function noData() {
+            if(!$('#tab_act>tbody>tr>td.monto').is(":visible")){
+                $('#no_data_act').show();
+            }
+            else{
+                $('#no_data_act').hide();
+            }
+            if(!$('#tab_fin>tbody>tr>td.monto').is(":visible")){
+                $('#no_data_fin').show();
+            }
+            else{
+                $('#no_data_fin').hide();
+               
+            }
+            if(!$('#tab_ser>tbody>tr>td.monto').is(":visible")){
+                $('#no_data_serv').show();
+            }
+            else{
+                $('#no_data_serv').hide();
+            }
+            if(!$('#tab_otros>tbody>tr>td.monto').is(":visible")){
+                $('#no_data_otros').show();
+            }
+            else{
+                $('#no_data_otros').hide();
+            }
+            if(!$('#tab_enajenacion>tbody>tr>td.monto').is(":visible")){
+                $('#no_data_enajenacion').show();
+            }
+            else{
+                $('#no_data_enajenacion').hide();
+
+            }    
+        }   
+        $('#ingreso_anio_anterior-si').on('click', function(){
+            noData();
+        });
+        function accion_hide_disabled_show(_this){
+            switch(_this.id){
+              case 'ingreso_anio_anterior-no':
+                $('#div_sueldo_publico_actual').show();
+                $('#div_sueldo_publico_anterior').hide();
+                $('#div_sueldo_publico_anterior_fi').hide();
+                $('#div_sueldo_publico_anterior_fc').hide();
+
+                $('.fechas_anio_anterior').hide();
+                $('.fechas_anio_anterior').hide();
+
+                $('#id_ingresos_declaracion-ingreso_mensual_cargo').val(0);
+                $('#id_ingresos_declaracion-ingreso_mensual_actividad').val(0);
+                $('#id_ingresos_declaracion-ingreso_mensual_financiera').val(0);
+                $('#id_ingresos_declaracion-ingreso_mensual_servicios').val(0);
+                $('#id_ingresos_declaracion-ingreso_enajenacion_bienes').val(0);
+                $('#id_ingresos_declaracion-ingreso_otros_ingresos').val(0);
+              break;
+
+              case 'ingreso_anio_anterior-si':
+                $('#div_sueldo_publico_actual').hide();
+                $('#div_sueldo_publico_anterior').show();
+                $('#div_fue_servidor_publico').show();
+                $('#div_sueldo_publico_anterior_fi').show();
+                $('#div_sueldo_publico_anterior_fc').show();
+
+                $('.fechas_anio_anterior').show();
+                $('.fechas_anio_anterior').show();
+
+              break;
+
+              case 'id-domicilio-cat_pais-ex':
+                $('#id_domicilio-colonia').attr("disabled", true);
+                $('#id_domicilio-cat_entidades_federativas').attr("disabled", true);
+                $('#id_domicilio-municipio').attr("disabled", true);
+                $('#id_domicilio-colonia').val("");
+                $('#id_domicilio-cat_entidades_federativas').val("");
+                $('#id_domicilio-municipio').val("");
+              break;
+
+              case 'id-inmueble_domicilio-cat_pais-ex':
+                $('#id_inmueble_domicilio-colonia').attr("disabled", true);
+                $('#id_inmueble_domicilio-cat_entidades_federativas').attr("disabled", true);
+                $('#id_inmueble_domicilio-municipio').attr("disabled", true);
+                $('#id_inmueble_domicilio-colonia').val("");
+                $('#id_inmueble_domicilio-cat_entidades_federativas').val("");
+                $('#id_inmueble_domicilio-municipio').val("");
+              break;
+
+              case 'id-comodato-cat_paises-ex':
+                $('#id_comodato-cat_entidades_federativas').attr("disabled", true);
+              break;
+
+              case 'id-var-cat_pais-ex':
+                $('#id_var-cat_entidades_federativas').attr("disabled", true);
+              break;
+
+              case 'id-domicilio-cat_pais-mx':
+                $('#id_domicilio-colonia').attr("disabled", false);
+                $('#id_domicilio-cat_entidades_federativas').attr("disabled", false);
+                $('#id_domicilio-municipio').attr("disabled", false);
+              break;
+
+              case 'id-inmueble_domicilio-cat_pais-mx':
+                $('#id_inmueble_domicilio-colonia').attr("disabled", false);
+                $('#id_inmueble_domicilio-cat_entidades_federativas').attr("disabled", false);
+                $('#id_inmueble_domicilio-municipio').attr("disabled", false);
+              break;
+
+              case 'id-comodato-cat_paises-mx':
+                $('#id_comodato-cat_entidades_federativas').attr("disabled", false);
+              break;
+
+              case 'id-var-cat_pais-mx':
+                $('#id_var-cat_entidades_federativas').attr("disabled", false);
+              break;
+
+              case 'ingresos-no':
+                $('#id_socios_comerciales-montoMensual').attr("disabled", true);
+                $('#id_socios_comerciales-moneda').attr("disabled", true);
+              break;
+
+              case 'ingresos-si':
+                $('#id_socios_comerciales-montoMensual').attr("disabled", false);
+                $('#id_socios_comerciales-moneda').attr("disabled", false);
+              break;
+
+              case 'no-pagado':
+                $('#id_membresia-monto').attr("disabled", true);
+                $('#id_membresia-moneda').attr("disabled", true);
+              break;
+
+              case 'Pagado':
+                $('#id_membresia-monto').attr("disabled", false);
+                $('#id_membresia-moneda').attr("disabled", false);
+              break;
+
+              case 'no-pagado-act':
+                $('#id_representaciones_activas-monto').attr("disabled", true);
+                $('#id_representaciones_activas-cat_moneda').attr("disabled", true);
+              break;
+
+              case 'Pagado-act':
+                $('#id_representaciones_activas-monto').attr("disabled", false);
+                $('#id_representaciones_activas-cat_moneda').attr("disabled", false);
+              break;
+            }
+        }
+
+
+        /*** Declaración fisal */
+        //Se encarga de procesar el archivo que sea cargado en el input type
+        function readURL(input){
+            var tipo = input.getAttribute('tipo');
+            if(input.files && input.files[0])
+            {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#image-upload-wrap-'+tipo).hide();
+                    $('#file-upload-content-'+tipo).show();
+                    $('#image-title-'+tipo).html(input.files[0].name);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+            else 
+            {
+                removeUpload(tipo);
+            }
+        }
+
+        //Elimina el archivo cargado en la zona de declaración fiscal
+        function removeUpload(tipo){
+            $('declaracion_fiscal-archivo_'+tipo).replaceWith($('declaracion_fiscal-archivo_').clone());
+            $('#file-upload-content-'+tipo).hide();
+            $('#image-upload-wrap-'+tipo).show();
+        }
+
+        function muebles_forma_pago_inicial(_id){
+            var forma_pago = $('#'+_id+'-forma_pago').val();
+            if(!forma_pago){
+               $('#'+_id+'-precio_adquisicion').attr("disabled", true);
+               $('#'+_id+'-cat_monedas').attr("disabled", true);
+            }
+            else{
+                if(forma_pago == 'CRÉDITO' || forma_pago == 'CONTADO'){
+                    $('#'+_id+'-precio_adquisicion').attr("disabled", false);
+                    $('#'+_id+'-cat_monedas').attr("disabled", false);
+                }
+                else{
+                    $('#'+_id+'-precio_adquisicion').attr("disabled", true);
+                    $('#'+_id+'-cat_monedas').attr("disabled", true);
+                }
+            }
+        }
+
+        function onclick_check_terminos_condiciones(){
+            if($("#checkbox_crear_cuenta").is(":checked")){
+                $('#btn_crear_cuenta').prop( "disabled", false );
+            }
+            else{
+                $('#btn_crear_cuenta').prop( "disabled", true );
+            }
+          }
+
+        $('.block_boton').click(function(){ 
+            $('.block_boton').prop('disabled', true);
+            $('.block_submit').submit();
+            $(".block_boton").prop("checked", false);
+        });
+
+        function no_archivo_terminos_condiciones(){
+            $('#ms_terminos_condiciones').empty()
+            $('#ms_terminos_condiciones').prepend('<div class="alert alert-danger alert-dismissable alert-link">'+
+                      '<button type="button" class="close" data-dismiss="alert">&times;</button>'+
+                           '<strong>Validar que exista un archivo cargado en personalización de terminos y condiciones</strong></div>')
+        }
+
+
+        function change_conyugue(_this, id_div){
+            var actividad_laboral = parseInt(_this.children("option:selected").val());
+
+            switch(actividad_laboral){
+                case 1://PUBLICO
+                    $('#'+id_div+'-sector-publico').show();
+                    $('#'+id_div+'-sector-privado').hide();
+                    $('#'+id_div+'-otro').hide();
+                 break;
+
+                case 2://PRIVADO
+                    $('#'+id_div+'-sector-publico').hide();
+                    $('#'+id_div+'-sector-privado').show();
+                    $('#'+id_div+'-otro').hide();
+                break;
+
+                case 6://Id otro con la código solicitado por API
+                    $('#'+id_div+'-sector-publico').hide();
+                    $('#'+id_div+'-sector-privado').hide();
+                    $('#'+id_div+'-otro').show();
+                break;
+
+                default:
+                    $('#'+id_div+'-sector-publico').hide();
+                    $('#'+id_div+'-sector-privado').hide();
+                    $('#'+id_div+'-otro').hide();
+            }
+        }
+
+        function change_prestamocomodato(_this, id_div){
+            var tipo_prestamo = _this.val();
+            
+            switch(tipo_prestamo){
+                case 'INMUEBLE':
+                    $('#div_inmueble_comodato').show()
+                    $('#div_mueble_comodato').hide()
+                break;
+
+                case 'MUEBLE':
+                    $('#div_inmueble_comodato').hide()
+                    $('#div_mueble_comodato').show()
+                break;
+
+                default:
+                    $('#div_inmueble_comodato').hide()
+                    $('#div_mueble_comodato').hide()
+            }
+        }
+
+
+
+function change_ingresos_suma(_this){
+  var monto_pareja = 0;
+  var ingresos_otros = 0;
+  var ingresos_cargo = 0;
+  if($('#id_ingresos_declaracion-ingreso_mensual_otros_ingresos').val()){
+    ingresos_otros =   parseInt($('#id_ingresos_declaracion-ingreso_mensual_otros_ingresos').val());
+  }
+  if($('#id_ingresos_declaracion-ingreso_mensual_cargo').val()){
+   ingresos_cargo = parseInt($('#id_ingresos_declaracion-ingreso_mensual_cargo').val());
+
+  }
+
+  var ingresos_neto = 0;
+ if(parseInt($('#id_ingresos_declaracion-ingreso_mensual_pareja_dependientes').val())){
+    monto_pareja = parseInt($('#id_ingresos_declaracion-ingreso_mensual_pareja_dependientes').val());
+ }
+
+  var monto_total = 0;
+
+  ingresos_neto = ingresos_cargo+ingresos_otros;
+  monto_total=ingresos_neto+monto_pareja;
+
+  $('#id_ingresos_declaracion-ingreso_mensual_neto').val(ingresos_neto);
+  $('#id_ingresos_declaracion-ingreso_mensual_total').val(monto_total);
+
+  if((ingresos_neto == 0 || ingresos_neto==null) && monto_pareja){
+    ingresos_neto = monto_pareja;
+  }
+}
+
+        function muebles_forma_pago(_this,_id){
+            var fp = _this.children("option:selected").val();
+            if(fp == 'CRÉDITO' || fp == 'CONTADO'){
+                $('#'+_id+'-precio_adquisicion').attr("disabled", false);
+                $('#'+_id+'-cat_monedas').attr("disabled", false);
+            }
+            else{
+                $('#'+_id+'-precio_adquisicion').attr("disabled", true);
+                $('#'+_id+'-cat_monedas').attr("disabled", true);
+            }
+        }
+
+        function validateNumber(event) {
+            var key = window.event ? event.keyCode : event.which;
+            if (event.keyCode === 8 || event.keyCode === 46) {
+                return true;
+            } else if ( key < 48 || key > 57 ) {
+                return false;
+            } else {
+                return true;
+            }
+        };
+            
+        function validarSelectPuesto(puesto) {
+          // Capturar los valores de ambos selectpickers          
+          var selectValue = document.getElementById(puesto).value; 
+          
+          if (selectValue === "") {             
+            // Evitar el envío del formulario por defecto.
+            $('.dropdown.bootstrap-select').addClass('empty');
+            return false;
+          } else{
+            return true;
+          }
+        }
+        
+        $("#form_registro").submit(function(e){
+          e.preventDefault();       
+          var validacion = validarSelectPuesto("id_puesto");
+          $('#btn_crear_cuenta').prop( "disabled", false );
+
+          if(validacion){
+            this.submit();
+          }
+        });
+
+        $("#form_usuarioOIC").submit(function(e){
+          e.preventDefault();       
+          var validacion = validarSelectPuesto("id_cat_puestos");
+          if(validacion){
+            this.submit();
+          }
+        }); 
+
+        $("#form_usuarioDeclarante").submit(function(e){
+          e.preventDefault();       
+          var validacion = validarSelectPuesto("id_cat_puestos");
+          if(validacion){
+            this.submit();
+          }
+        }); 
+
+        
+       $(window).on('load',function(){ 
+          
+            // Capturar el evento de cambio del selectpicker
+            $('#id_cat_puestos, #id_puesto').change(function() {
+              $('.dropdown.bootstrap-select').removeClass('empty');
+            });
+
+            if($("#no_aplica").prop("checked") && $("#no_aplica").length){
+              $(".row-form").hide();
+            }else {
+              $(".row-form").show();
+            };
+
+            $('.image-upload-wrap').bind('dragover',function(){
+              $('.image-upload-wrap').addClass('image-dropping');
+            });
+                
+            $('.image-upload-wrap').bind('dragleave',function(){
+              $('.image-upload-wrap').removeClass('image-dropping');
+            });
+
+            if('{{declaracion}}'){
+              $('#modal-aviso-declaracion-activa').modal('show');
+            }
+
+            //Si una declaración es nueva se mostrara un mensaje al usuario
+            if("{{nueva_declaracion}}" == "True")
+            {
+              $('#mensaje_bienvenida').modal('show');
+            }
+
+            if("{{declaracion_previa}}" == "True" && !$("#no_aplica").prop("checked")){
+              $('#mostrar_registro_previos').modal('show');
+            }
+
+            $('input[type="number"]').on("keypress keyup blur",function (event) {    
+               $(this).val($(this).val().replace(/[^\d].+/, ""));
+                if ((event.which < 48 || event.which > 57)) {
+                    $(".error_float_value").css("display", "inline");
+                    event.preventDefault();
+                }else{
+                    $(".error_float_value").css("display", "none");
+                }
+            });
+
+            $('#id_bienes_personas-porcentaje').on('input', function () {
+                var value = $(this).val();                
+                if ((value !== '') && (value.indexOf('.') === -1)) {
+                    $(this).val(Math.max(Math.min(value, 100), -100));
+                }
+
+                if (value === '0') {
+                    $(this).val(1);
+                }
+            });
+
+            $('#id_socios_comerciales-porcentaje_participacion').on('input', function () {
+                var value = $(this).val();                
+                if ((value !== '') && (value.indexOf('.') === -1)) {
+                    $(this).val(Math.max(Math.min(value, 100), -100));
+                }
+                if (value === '0') {
+                    $(this).val(1);
+                }
+            });
+
+            if(document.getElementById('ingreso_anio_anterior-no'))
+            {
+                if(document.getElementById('ingreso_anio_anterior-no').checked == true){
+                  $('#div_sueldo_publico_actual').show();
+                  $('#div_sueldo_publico_anterior').hide();
+                  $('#div_sueldo_publico_anterior_fi').hide();
+                  $('#div_sueldo_publico_anterior_fc').hide();
+
+                  $('.fechas_anio_anterior').hide();
+                  $('.fechas_anio_anterior').hide();
+
+                  $('#id_ingresos_declaracion-ingreso_mensual_cargo').val(0);
+                  $('#id_ingresos_declaracion-ingreso_mensual_actividad').val(0);
+                  $('#id_ingresos_declaracion-ingreso_mensual_financiera').val(0);
+                  $('#id_ingresos_declaracion-ingreso_mensual_servicios').val(0);
+                  $('#id_ingresos_declaracion-ingreso_enajenacion_bienes').val(0);
+                  $('#id_ingresos_declaracion-ingreso_otros_ingresos').val(0);
+                }
+            }
+
+            //Validaciones de RadioButtons
+            if($("#no-pagado-act").is(":checked"))
+            {
+              $('#id_representaciones_activas-monto').attr("disabled", true);
+              $('#id_representaciones_activas-cat_moneda').attr("disabled", true);
+            }
+
+            if($("#no-pagado").is(":checked")){
+              $('#id_membresia-monto').attr("disabled", true);
+              $('#id_membresia-moneda').attr("disabled", true);
+            }
+            
+
+            $("#ventana-modal").on('show.bs.modal', function(){
+              var inputs = $('#form_declaraciones :input');
+              var values = {};
+
+              inputs.each(function(){
+                var name_imput = $(this).attr('name');
+                if(name_imput != "estatus" && name_imput != "tipo"){
+                  values[name_imput] = $(this).val();
+                }
+                else{
+                  values[name_imput] = $(this).children("option:selected").val();
+                }
+              });
+
+              var form_reporte = $('#form_declaraciones_reporte :input');
+              form_reporte.each(function(i, input){
+                $(input).val(values[$(input).attr('name')])
+              });
+            });
+
+
+            $('.btnEliminarRegistroPrevio').click(function(){
+                var btnElement = $(this);
+                var current_url = "{{current_url}}".replace("declaracion:", "");
+                var trTableRegistros = $("#"+current_url+"_tableRegistrosPrevios");
+                var idDeclaracion = btnElement.attr("id").replace("-eliminar","");
+
+                if (confirm('¿Está seguro de eliminar el registro?') == true) {
+                    if((trTableRegistros.find("tr.registroPrevio").length -1) == 0){
+                        trTableRegistros.append("<tr class=\"registroPrevio\" style=\"font-weight: normal;display: table;width: 100%;table-layout: fixed;\">"+
+                                            "<td style=\"width: 100%;background: #f5fafd;\" colspan=\"5\"><center> Sin datos que mostrar </center></td>"+
+                                          "</tr>");
+                        $("#"+idDeclaracion+'-confirmar').hide()
+                    }
+
+                    btnElement.closest("tr").remove();
+
+                } 
+                else {
+                  return false;
+                }
+            });
+
+
+            $(".btnReloadRegistrosPrevios").click(function(){
+              $("#div_tableRegistrosPrevios").empty();
+              $("#div_tableRegistrosPrevios").html("<center style= \"margin-top: 10%;\">"+
+                        "<div class=\"spinner-grow\" style=\"width: 6rem;height: 6rem;\" role=\"status\">"+
+                        "<span class=\"sr-only\">Loading...</span>"+
+                        "</div></center>");
+              location.reload();
+            });
+
+
+
+            /*******************************VALIDACIONES DE INICIALIZACIÓN**************************************************/
+            var estado_civil = parseInt($("#id_var-cat_estados_civiles").val());
+            if(!$('#id_var-cat_regimenes_matrimoniales').val()){
+              $('#id_var-cat_regimenes_matrimoniales').attr("disabled", true);
+            }
+            else
+            {
+              if( estado_civil == 2 || estado_civil == 3){
+                $('#id_var-cat_regimenes_matrimoniales').attr("disabled", true);
+                $('#id_var-cat_regimenes_matrimoniales').val("");
+              }
+            }
+
+            //PARA DOMICILIOS SE MOSTRARÁ SOLA LA LISTA DE MUNICIPIOS DE ACUERDO A LA ENTIDAD SELECCIONADA
+            if($("#id_domicilio-cat_entidades_federativas")){
+              if($("#id_domicilio-cat_entidades_federativas").val() && !$('#id_domicilio-municipio').val()){
+                
+                if($("#id_domicilio-municipio").length){
+                    $("#id_domicilio-cat_entidades_federativas").val(14)
+                }
+
+                getMunicipios("#id_domicilio-cat_entidades_federativas", "#id_domicilio-municipio");
+              }
+            }
+
+            if($("#id_inmueble_domicilio-cat_entidades_federativas")){
+              if($("#id_inmueble_domicilio-cat_entidades_federativas").val() && !$('#id_inmueble_domicilio-municipio').val()){
+                
+                if($("#id_inmueble_domicilio-municipio").length){
+                    $("id_inmueble_domicilio-cat_entidades_federativas").val(14)
+                }
+
+                getMunicipios("#id_inmueble_domicilio-cat_entidades_federativas", "#id_inmueble_domicilio-municipio");
+              }
+            }
+
+
+            var date = new Date();
+            var year = date.getFullYear();
+
+            muebles_forma_pago_inicial('id_bienes_inmuebles');
+            muebles_forma_pago_inicial('id_muebles_no_registrables');
+            muebles_forma_pago_inicial('id_bienes_muebles'); 
+
+            if(document.getElementById("chart_grafica_usuarios_declaraciones_general")){
+              graficas_ajax_api({"year": year});
+            }
+
+            $('#id_inversiones-cat_tipos_inversiones').change(function(){
+              getTiposInversionesEspecificos();
+            });
+            
+            if($('#div_inmueble_comodato')){
+
+                if($("#id_comodato-tipo_obj_comodato").val() == 'INMUEBLE'){
+                    $('#div_inmueble_comodato').show();
+                    $('#div_mueble_comodato').hide();
+                }
+                else if ($("#id_comodato-tipo_obj_comodato").val() == 'MUEBLE'){
+                    $('#div_inmueble_comodato').hide();
+                    $('#div_mueble_comodato').show();
+                }
+                else{
+                    $('#div_inmueble_comodato').hide()
+                    $('#div_mueble_comodato').hide()
+                }
+            }
+
+            if(!$("#id_inversiones-cat_tipos_inversiones").val())
+            {
+              getTiposInversionesEspecificos();
+            }
+
+            if($('input[type=radio][name="experiencia_laboral-cat_ambitos_laborales"]:checked').val() == 1){
+              $(".ambito_publico").show();
+            }
+            else{
+              $(".ambito_publico").hide()
+            }
+            
+            /*****************************************FUNCIONES CHANGE**************************************************/
+            //Se encarga de habilitar o no el campo de regimenes matrimoniales de acuerdo al estado civil
+            $("#id_var-cat_estados_civiles").change(function(){
+              estado_civil = parseInt($(this).children("option:selected").val());
+              if(estado_civil == 2 || estado_civil == 3){
+                $('#id_var-cat_regimenes_matrimoniales').attr("disabled", true);
+                $('#id_var-cat_regimenes_matrimoniales').val("");
+              }
+              else{
+                $('#id_var-cat_regimenes_matrimoniales').attr("disabled", false);
+              }
+            });
+
+
+            //Habilita o deshabilita campos monto y moneda en bienes muebles y no registrables
+            $("#id_bienes_inmuebles-forma_pago").change(function(){
+              muebles_forma_pago($(this),'id_bienes_inmuebles');
+            });
+            $("#id_muebles_no_registrables-forma_pago").change(function(){
+              muebles_forma_pago($(this),'id_muebles_no_registrables');
+            });
+            $("#id_bienes_muebles-forma_pago").change(function(){
+              muebles_forma_pago($(this),'id_bienes_muebles');
+            });
+
+            //Para la sección de conyugue-dependieentes
+            $("#id_datos_pareja-actividadLaboral").change(function(){
+              change_conyugue($(this),'datos-pareja');
+            });
+            $("#id_conyuge_dependiente-actividadLaboral").change(function(){
+              change_conyugue($(this),'datos-dependiente');
+            });
+
+            //Para sección prestamocomodato
+            $("#id_comodato-tipo_obj_comodato").change(function(){
+              change_prestamocomodato($(this),'comodato');
+            });
+
+            //Para sección de INGRESOS
+            $("#id_ingresos_declaracion-ingreso_mensual_cargo").change(function(){
+              change_ingresos_suma($(this));
+            });
+
+            $("#id_ingresos_declaracion-ingreso_mensual_pareja_dependientes").change(function(){
+              change_ingresos_suma($(this));
+            });
+
+            $('#id_anio_filtro_year').change(function(){
+              graficas_ajax_api({"year": parseInt($(this).val())});
+            });
+            
+            $('input[type=radio][name="experiencia_laboral-cat_ambitos_laborales"]').change(function() {
+              if($(this).val() == 1){
+                $(".ambito_publico").show();
+              }else{
+                $(".ambito_publico").hide();
+              }
+            });
+
+                        
+            //Valida si el dato de remuneración ya esta guardado
+            if($('#ingresos-si').attr("es_inicial")){
+                $('#id_socios_comerciales-montoMensual').attr("disabled", false);
+                $('#id_socios_comerciales-moneda').attr("disabled", false);
+            }
+            else{
+                $('#id_socios_comerciales-montoMensual').attr("disabled", true);
+                $('#id_socios_comerciales-moneda').attr("disabled", true);
+            }
+
+            $("#id_domicilio-cat_entidades_federativas").on("change", function(e){
+                getMunicipios("#id_domicilio-cat_entidades_federativas", "#id_domicilio-municipio")
+            });
+            $("#id_inmueble_domicilio-cat_entidades_federativas").on("change", function(e){
+                getMunicipios("#id_inmueble_domicilio-cat_entidades_federativas", "#id_inmueble_domicilio-municipio");
+            });
+            $("#id_inversiones-cat_tipos_inversiones").on("change", getTiposInversionesEspecificos);
+
+
+            /****************VALIDACION INICIAL AREAS PUESTO EN DIFERENTES UBICACIONES DEL SISTEMA****************************/
+            
+            //>>>>>>>>>>>>>>>>>>>> INICIALES
+            
+            //Validación de campos areas y puesto en formulario de registro
+            if($("#id_areas").val() == '' ){
+              $("#id_puesto").prop('disabled', 'disabled');
+            }
+            else{
+              var puesto_valor = $("#id_puesto").val()
+              getPuestos("#id_areas","#id_puesto",puesto_valor)
+            }
+
+            //Validación de campos areas y puesto en el formulario de registro de la OIC
+            if($("#id_cat_areas").val() == '' ){
+              $("#id_cat_puestos").prop('disabled', 'disabled');
+            }
+            else{
+              var puesto_valor = $("#id_cat_puestos").val();
+              getPuestos("#id_cat_areas","#id_cat_puestos",puesto_valor)
+            }
+            //Validación de campos areas y puesto en el formulario de registro del encargo
+            if($("#id_datos_encargo_actual-cat_areas").val() == '' ){
+              $("#id_datos_encargo_actual-cat_puestos").prop('disabled', 'disabled');
+            }
+            else{
+              var puesto_valor =  $("#id_datos_encargo_actual-cat_puestos").val();
+              getPuestos("#id_datos_encargo_actual-cat_areas","#id_datos_encargo_actual-cat_puestos", puesto_valor)
+            }
+
+            if( $('#id-domicilio-cat_pais-ex').is(':checked')){
+              $('#id_domicilio-colonia').attr("disabled", true);
+              $('#id_domicilio-cat_entidades_federativas').attr("disabled", true);
+              $('#id_domicilio-municipio').attr("disabled", true);
+              $('#id_domicilio-colonia').val("");
+              $('#id_domicilio-cat_entidades_federativas').val("");
+              $('#id_domicilio-municipio').val("");
+            }
+
+            //>>>>>>>>>>>>>>>>>>>> FUNCIONAMIENTO
+            //Campo en el formulario de registro de la OIC
+            $("#id_cat_areas").change(function(){              
+              getPuestos("#id_cat_areas","#id_cat_puestos");
+            });
+            //Campo en formulario de registrro
+            $("#id_areas").change(function(){
+              getPuestos("#id_areas","#id_puesto");
+            });
+            
+
+            //Campo de la sección de empleo, cargo o comisión
+            $("#id_datos_encargo_actual-cat_areas").change(function(){
+              getPuestos("#id_datos_encargo_actual-cat_areas","#id_datos_encargo_actual-cat_puestos");
+            });
+            
+            $('#id_datos_encargo_actual-cat_puestos').on('change', function (e) {
+                if($('#id_datos_encargo_actual-cat_puestos').val()){
+                  var optionSelected = $("option:selected", this);
+                  
+                  document.getElementById("id_datos_encargo_actual-nivel_encargo").value = optionSelected.attr("nivel");
+                }
+            });
+          });
+        </script>
+        {% block body_script %}{% endblock %}
+    </body>
+</html>

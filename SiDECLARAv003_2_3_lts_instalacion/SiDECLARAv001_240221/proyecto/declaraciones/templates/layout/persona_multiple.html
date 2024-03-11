@@ -1,0 +1,181 @@
+{% load bootstrap4 %}
+{% load static %}
+    <div class="col-12">
+        <div class="row">
+            <div class="col-md-6">
+                <label for="cargo-municipio" class="label-secondary">
+                    {% if title %}
+                        {{title}}
+                    {% else %}
+                        Especifique Tipo de persona
+                    {% endif %} 
+                    {% if tipo or obligatorio %}
+                        <span class="text-danger text-lg font-weight-bold">*</span> : 
+                    {% endif %}
+                </label>
+                <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999"  title="{{ title }}">
+                    <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                </button>
+            </div>
+            <div class="col-md-6 d-flex flex-row-reverse">
+                <button 
+                    id="{{form.es_fisica.html_name}}-{{declaracion2.pk}}-{{bien_id|default_if_none:'0'}}-agregar"
+                    type="button" 
+                    name="agregar_otraPersona"
+                    class="btn btn-link btn-link-plus text-success font-weight-semibold text-uppercase"
+                    style="background: #cce3e4;margin-bottom: 0.5rem;"
+                    onclick="mostrarFormularioBienPersona(this)"
+                >
+                    <img src="{% static 'src/img/plus.svg' %}" alt="agregar" class="svg"> Agregar otro
+                </button>
+            </div>
+        </div>
+    </div>
+  
+    <div class="row">
+        {% if not bien_id %}
+        <input type="text" id="id_{{ form.es_fisica.html_name }}_datos" name="{{ form.es_fisica.html_name }}_datos" style="display: none;" >
+        {% endif %}
+       <div class="col-12" id="{{ form.es_fisica.html_name }}-{{declaracion2.pk}}-{{bien_id|default_if_none:'0'}}-divTableBienesPersonas">
+           {% include 'layout/persona_tabla.html' with data=data label=label html_name=form.es_fisica.html_name declaracion=declaracion2.pk idBien=bien_id %}
+        </div>
+        <div class="col-12" style="display: none;" id="{{form.es_fisica.html_name}}-{{declaracion2.pk}}-{{bien_id|default_if_none:'0'}}-formulario">
+            <div style="margin-bottom: 10px;">
+                <input type="hidden" id="{{form.es_fisica.html_name}}-idOtraPersona_InfoVar" value="0">
+                <div class="custom-control custom-radio custom-control-inline radio-secondary tipo_persona">
+                    <input {% if not form.es_fisica.initial %}checked{% endif %}  {% if form.es_fisica.initial == True %}checked{% endif %} type="radio"  id="id_{{form.es_fisica.html_name}}-f" value="true" name="{{ form.es_fisica.html_name }}" class="custom-control-input pfisica" onchange="radioTPersona(this.value,'{{ form.es_fisica.html_name }}')">
+                    <label class="custom-control-label text-rg" for="id_{{form.es_fisica.html_name}}-f">Física</label>
+                </div>
+                <div class="custom-control custom-radio custom-control-inline radio-secondary tipo_persona">
+                    <input {% if form.es_fisica.initial == False %}checked{% endif %} type="radio" id="id_{{ form.es_fisica.html_name }}-m"  value="false" name="{{ form.es_fisica.html_name }}" class="custom-control-input pmoral " onchange="radioTPersona(this.value,'{{ form.es_fisica.html_name }}')">
+                    <label class="custom-control-label text-rg" for="id_{{ form.es_fisica.html_name }}-m">Moral</label>
+                </div>
+            </div>
+            <div class="col-12" >
+                <div id="id_{{ form.es_fisica.html_name }}_container_fisica" class="row">
+                    <div class="col-md-6">
+                        <div class="form-group {% if 'nombres' in campos_privados %}form-group-private{% endif %}">
+                            <label for="nombre2" class="label-secondary">Nombre(s) {% if label %}{{ label }}{% else %}del propietario anterior{% endif %}:</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999"  title="Nombre o nombres sin abreviatiuras ni signos especiales.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field form.nombres show_label=False %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group {% if 'apellido1' in campos_privados %}form-group-private{% endif %}">
+                            <label for="apellido1_2" class="label-secondary">Primer apellido {% if label %}{{ label }}{% else %}del propietario anterior{% endif %}:</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999"  title="Apellido materno sin abreviaturas ni signos especiales {% if label %}{{ label }}{% else %}de quien se adquirió el inmueble{% endif %}.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field form.apellido1 show_label=False placeholder="Primer Apellido"%}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group {% if 'apellido2' in campos_privados %}form-group-private{% endif %}">
+                            <label for="apellido2_2" class="label-secondary">Segundo apellido {% if label %}{{ label }}{% else %}del propietario anterior{% endif %}:</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999"  title="Apellido paterno sin abreviaturas ni signos especiales {% if label %}{{ label }}{% else %}de quien se adquirió el inmueble{% endif %}.">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field form.apellido2 show_label=False placeholder="Segundo apellido"%}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                    </div>
+                </div>
+                <div id="id_{{ form.es_fisica.html_name }}_container_moral" class="row">
+                    <div class="col-md-{% if rfc %}8{% else %}12{% endif %}">
+                        <div class="form-group">
+                            <label for="nombre2" class="label-secondary">Nombre, denominación o razón social {% if label %}{{ label }}{% else %}del propietario anterior{% endif %}</label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999"  title="Nombre, denominación o razón social {% if label %}{{ label }}{% else %}de quien se adquirió el inmueble{% endif %}">
+                                <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                            </button>
+                            {% bootstrap_field form.razon_social show_label=False%}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group {% if 'rfc' in campos_privados %}form-group-private{% endif %}">
+                            <label class="label-secondary">RFC {%if label%} {{ label }} {%else%} del propietario anterior {%endif%}  {% if 'rfc' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %} <small class="text-help text-primary">(si aplica)</small></label>
+                            <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999"  title="Los 10 caracteres básicos y los 3 caracteres de la homoclave.">
+                            <img src="{% static 'src/img/info.svg'%}" alt="info" class="svg">
+                        </button>
+                        {% bootstrap_field  form.rfc  field_class='valida_rfc'  show_label=False placeholder="RFC del copropietario" %}
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                {% if tipoRelacion %}
+                    <div class="col-md-12" style="display: none;" id="{{form.es_fisica.html_name}}-{{declaracion2.pk}}-{{bien_id|default_if_none:'0'}}-tipoRelacion">
+                        <label class="label-secondary">RELACIÓN DEL TRANSMISOR DE LA PROPIEDAD CON EL TITULAR{% if 'tipo_relacion' in campos_obligatorios %}<span class="text-danger text-lg font-weight-bold">*</span>{% endif %}</label>
+                        <button type="button" class="btn btn-link p-0 btn-information" data-toggle="tooltip" tabindex="9999"  title="Indicar la Relación con la persona a quien adquisió el inmueble">
+                            <img src="{% static 'src/img/info.svg' %}" alt="info" class="svg">
+                        </button>
+                        <div id="{{form.es_fisica.html_name}}-{{declaracion2.pk}}-{{bien_id|default_if_none:'0'}}-divTipoRelacion">
+                            {% include 'layout/radiobuttons.html' with field_select=formBienPersona.fields.tipo_relacion field_name=formBienPersona.tipo_relacion otro_name=formBienPersona.otra_relacion_familiar otrof_name=formBienPersona.otra_relacion col=2 col_o=4 tipo='tipo_relacion' campos_privados=campos_privados %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-12" style="margin-top: 1rem;">
+            <div class="row">
+                <div class="col-md-8">
+                    <button 
+                        id="{{form.es_fisica.html_name}}-{{declaracion2.pk}}-{{bien_id|default_if_none:'0'}}-guardar"
+                        title="{{title}}"
+                        label="{{label}}"
+                        bienId="{{bienId}}"
+                        current_url="{{current_url_seccion}}"
+                        tipoParticipacion="{{tipoParticipacion}}"
+                        type="button" 
+                        name="guardar_otraPersona"
+                        class="btn text-success font-weight-semibold text-uppercase"
+                        style="display: none;background: #cce3e4;margin:0 0 1rem 1rem;"
+                        onclick="guardarFormularioBienPersona(this)"
+                    >
+                        Guardar datos {{label}}
+                    </button>
+                </div>
+                <div class="col-md-4 d-flex flex-row-reverse">
+                    <button 
+                        id="{{form.es_fisica.html_name}}-{{declaracion2.pk}}-{{bien_id|default_if_none:'0'}}-cancelar"
+                        type="button" 
+                        name="cancelar_otraPersona"
+                        class="btn font-weight-semibold text-uppercase"
+                        style="display: none;background: #F9D8D8;color: #de6060;"
+                        onclick="cancelarFormularioBienPersona(this)"
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!--modal-->
+        <div aria-labelledby="myModalLabel" class="modal fade" id="eliminarPersona" role="dialog" tabindex="-1">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Eliminar persona</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>¿Desea eliminar el registro de esta persona?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" id="rowId" value="">
+                        <div id="spinnerEliminarConfirm">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                              </div>
+                        </div>
+                        <div id="btnEliminarConfirm" >
+                            <button class="btn btn-default" data-dismiss="modal" type="button">Cancelar</button>
+                            <button class="btn btn-danger" id="remove-button" type="button">Eliminar</button>
+                        </div>
+                    </div>
+                </div><!-- end modal-content -->
+            </div><!-- end modal-dialog -->
+        </div><!-- end modal -->
+    </div>

@@ -1,0 +1,382 @@
+{% extends 'layout/base.html' %}
+{% load static %}
+{% load bootstrap4 %}
+{% load no_aplica %}
+{% block content %}
+<section>
+  <div class="container body_content">
+    <div class="row row-md py-7">
+      <div class="col-12 mb-5">
+        <p class="text-gray text-xl">
+          <span class="text-primary-light font-weight-semibold">
+            DECLARACIONES PREVIAS</span>
+        <p>Puedes descargar las declaraciones que has realizado con anterioridad en formato PDF</p>
+      </div>
+    </div>
+    <div id="div_mensajes_vista_previa">
+    {% if messages %}
+        {% for message in messages %}
+                {% if message.tags == "success" %}
+                    <div class="alert alert-success alert-dismissable alert-link">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                          <strong>{{ message }}</strong>
+                    </div>
+                {% endif %}
+                {% if message.tags == "error" %}
+                    <div class="alert alert-danger alert-dismissable alert-link">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                          <strong>{{ message }}</strong>
+                    </div>
+                {% endif %}
+
+                {% if message.tags == "warning" %}
+                    <div class="alert alert-warning alert-dismissable alert-link">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                          <strong>{{ message }}</strong>
+                    </div>
+                {% endif %}
+        {% endfor %}
+    {% endif %}
+  </div>
+    <table class="table table-hover" id="table_declaraciones_previas">
+      <thead>
+        <tr>
+          <th scope="col" class="text-center">TIPO DE DECLARACIÓN</th>
+          <th scope="col" class="text-center">FECHA DE REALIZACIÓN</th>
+          <th scope="col" class="text-center">ESTADO</th>
+          <th scope="col" class="text-center">DECLARACIÓN</th>
+          <th scope="col" class="text-center">VER</th>
+          <th scope="col" class="text-center">ACUSE</th>
+          <th scope="col" class="text-center">OBSERVACIONES</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        {% for dec in declaraciones %}
+        <tr archivo_declaraciones="{{dec.archivo}}" estatus_declaracion="{{dec.estatus_proceso}}" declaracion_id="{{dec.declaracion.pk}}" cierre_declaracion="{{dec.cierre_declaracion}}">
+          <td class="font-weight-bold text-center text-uppercase">{{ dec.declaracion.cat_tipos_declaracion }}</td>
+          <td class="font-weight-bold text-center text-uppercase">{{ dec.declaracion.fecha_recepcion|date:"d / F / Y" }}</td>
+          <td class="font-weight-bold text-center text-uppercase">{% if dec.declaracion.extemporanea == True %} extemporanea {% else %} ordinaria {% endif %}</td>
+
+          <td class="font-weight-bold text-center text-uppercase" id="{{dec.declaracion.pk}}_td_pdf">
+
+            {% if dec.archivo != "" %}
+              <a href="{{dec.archivo}}" target="_blank">
+                <img src="{% static 'src/img/descargar.svg' %}" alt="Ver archivo" class="svg" style="width: 35px;">
+              </a>     
+            {% else %}
+                {% if dec.cierre_declaracion %}
+                  <div class="progress" style="width: 100%; height: 40px;">
+                    {% if dec.estatus_proceso %}
+                        <div class="progress-bar progress-bar-striped active" role="progressbar"
+                        aria-valuenow="{{dec.estatus_proceso}}" aria-valuemin="0" aria-valuemax="100" style="width:{{dec.estatus_proceso}}%">
+                          {{dec.estatus_proceso}}%
+                        </div>
+                      {% else %}
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                        aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width:50%">
+                          Preparando...
+                        </div>
+                      {% endif %}
+                    </div>
+                {% else %}
+                    {% if dec.estatus_proceso %}
+                      <div class="progress-bar progress-bar-striped active" role="progressbar"
+                      aria-valuenow="{{dec.estatus_proceso}}" aria-valuemin="0" aria-valuemax="100" style="width:{{dec.estatus_proceso}}%">
+                        {{dec.estatus_proceso}}%
+                      </div>
+                    {% else %}
+                      <a href="#" class="a_declaracion_sin_pdf" declaracion="{{dec.declaracion.pk}}" estatus_declaracion="{{dec.estatus_proceso}}" cierre_declaracion="{{dec.cierre_declaracion}}" id="{{dec.declaracion.pk}}_declaracion_sin_pdf">
+                        <img src="{% static 'src/img/descargar_gray.svg' %}" alt="Crear archivo" class="svg" style="width: 35px;">
+                      </a>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+          </td>
+          <td class="font-weight-bold text-center text-uppercase">
+            <a href="{% url 'declaraciones-previas-ver' dec.declaracion.folio %}" target="_blank">
+              <img src="{% static 'src/img/view_file.png' %}" alt="Descargar" class="svg" style="width: 40px;">
+            </a>            
+          </td>
+          <td class="font-weight-bold text-center text-uppercase">{% if dec.declaracion.cat_estatus.pk is 4%}<a href="{%  url 'pdf_confimacion' dec.declaracion.pk %}" target="blank"> <img width="40px" src="{% static 'src/img/approve.png' %}"></a>{% else %} N/A {% endif %}</td> <!--ACUSE-->
+          <td class="font-weight-bold text-center text-uppercase">
+            <a href="#" data-toggle="modal" data-target="#observaciones-modal" class="a_declaracion_observaciones" declaracion="{{dec.declaracion.pk}}">
+              <img src="{% static 'src/img/comment.png' %}" alt="Observaciones" style="width: 40px;">
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="modal fade" id="observaciones-modal" tabindex="-1" role="dialog" aria-labelledby="lost-password-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" style="max-height: 70%;" role="document">
+      <div class="modal-content">
+        <form action="" id="observaciones_form">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="row mt-6">
+              <div class="col-12 text-center">
+                <label 
+                  for="dependency" 
+                  class="h3 modal-title mt-5 mb-1 text-lg text-uppercase font-weight-normal text-center" 
+                  id="lost-password-label">
+                  Observaciones de tu declaración
+                </label>
+                <p>
+                  Los cambios a cualquier campo serán aplicados una vez dé click en el boton de "Guardar"
+                </p>
+              </div>
+            </div>
+            <div class="col-12 text-center overflow-auto">
+              <div class="accordion" id="accordionExample" style="min-height: 4rem;">
+                <div class="text-center">
+                  <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="sr-only">Loading...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary" id="observaciones_guardar">Guardar</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</section>
+{% endblock %}
+{% block body_script %}
+  <script>
+
+    function ajax_consulta_estaus_pdf(data, td_registro){
+      var intervalId = window.setInterval(function(){
+          $.ajax({
+              url : "{% url 'estatus_pdf_declaracion' %}",
+              data: data,
+              type : "GET",
+              success : function(response) {              
+                td_registro.empty();
+
+                if(response["estatus_proceso"] == 100){
+                  clearInterval(intervalId);
+                  td_registro.append('<a href="'+response["archivo"]+'" target="_blank">'+
+                    '<img src='+"{% static 'src/img/descargar.svg' %}"+' alt="Ver archivo" class="svg" style="width: 40px;"></a>')
+
+                  $.ajax({
+                    url : "{% url 'eliminar_pdf_declaracion' %}",
+                    data: data,
+                    type : "GET",
+                    success : function(response) {              
+                      console.log("Eliminar",response )
+                    },
+                    error : function(xhr,errmsg,err) {
+                      console.log(xhr.status + ": " + xhr.responseText);
+                    }
+                  });
+                  
+                }
+                else{
+                  var estatus_actual = response["estatus_proceso"] == "None" || !response["estatus_proceso"] ? 10 : response["estatus_proceso"]
+                  td_registro.append('<div class="progress" style="width: 100%; height: 40px;">'+
+                    '<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="'+estatus_actual+'"'+
+                    'aria-valuemin="0" aria-valuemax="100" style="width:'+estatus_actual+'%">'+estatus_actual+'%</div></div>');
+                }
+              },
+              error : function(xhr,errmsg,err) {
+                console.log(xhr.status + ": " + xhr.responseText);
+              }
+          });
+        }, 6000); 
+    }
+
+    $('#table_declaraciones_previas > tbody  > tr').each(function(index) {
+      var estatus_declaracion = $(this).attr("estatus_declaracion");
+      var cierre_declaracion = $(this).attr("cierre_declaracion");
+      var td_btn_pdf = $(this).find("td").eq(3)
+      var data = {
+        "declaracion": $(this).attr("declaracion_id")
+      }
+
+      if(estatus_declaracion && estatus_declaracion != "null" && estatus_declaracion != "None" && estatus_declaracion != 100 || cierre_declaracion == "True" ){
+        ajax_consulta_estaus_pdf(data, td_btn_pdf);
+      }
+    });
+
+    /**
+       Obtiene las observaciones y secciones que esta declaración tiene guardadas
+    */
+    $(".a_declaracion_observaciones").click(function(e){
+      var id_declaracion = $(this).attr("declaracion");
+      var modal_observaciones = $("#observaciones-modal");
+
+      modal_observaciones.find("#accordionExample").html("");
+      modal_observaciones.find("#accordionExample").html("<div class=\"text-center\"><div class=\"spinner-border text-success\" role=\"status\" style=\"width: 3rem; height: 3rem;\">"+
+              "<span class=\"sr-only\">Loading...</span>"+
+            "</div></div>");
+      var data = {
+        declaracion: id_declaracion
+      }
+      $.ajax({
+          url : "{% url 'observaciones-finales-consultar' %}",
+          data: data,
+          type : "GET",
+          success : function(response) {
+            var card_parent = '<input type="hidden" name="declaracion" value="'+response["declaracion"]+'">';
+
+            Object.entries(response["secciones_observaciones"]).forEach(([key, value]) => {
+              var parent_expanded = key == 1 ? 'aria-expanded="true"' : 'aria-expanded="false"'
+              var paren_show = key == 1 ? 'show' : ''
+              var child = "";
+
+              Object.entries(value["subsecciones"]).forEach(([subkey, subvalue]) => {
+                var observacion_id = subvalue["observacion_id"] ? subvalue["observacion_id"] : "null"
+                var observacion = subvalue["observacion"] ? subvalue["observacion"] : ''
+                var date_observacion = typeof subvalue["observacion_last_update"] !== 'undefined' ? '<span style="color: dimgray;ont-size: smaller;">Ultima modificación: '+subvalue["observacion_last_update"]+' </span></li>' : ''
+                
+                var child_li = '<li class="list-group-item">'+subkey+'<br>'+
+                    date_observacion+
+                    '<li class="list-group-item">'+
+                      '<div class="form-group">'+
+                        '<textarea class="form-control" id="observacion_'+ subvalue["seccion_url"]+
+                          '" name="'+ subvalue["seccion_url"]+'_'+observacion_id+'"rows="3">'+ 
+                          observacion +
+                        '</textarea>'+
+                      '</div>'+
+                    '</li>';
+
+                child = child + child_li
+              });
+
+              var parent = '<div class="card">'+
+                '<div class="card-header" id="heading_'+key+'">'+
+                  '<h5 class="mb-0">'+
+                    '<button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne_'+key+'" '+parent_expanded+' aria-controls="collapseOne_'+key+'">'+
+                      value["seccion"]+
+                    '</button>'+
+                  '</h5>'+
+                '</div>'+
+                '<div id="collapseOne_'+key+'" class="collapse '+paren_show+'" aria-labelledby="heading_'+key+'" data-parent="#accordionExample">'+
+                  '<div class="card-body" style="overflow-y: scroll;position: relative;max-height: 500px">'+
+                    '<ul class="list-group" id="ul_'+key+'">'+ 
+                      child+
+                    '</ul>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+
+              card_parent = card_parent + parent;
+            });
+
+            modal_observaciones.find("#accordionExample").html("");
+            modal_observaciones.find("#accordionExample").html(card_parent);
+          },
+          error : function(xhr,errmsg,err) {
+            console.log(xhr.status + ": " + xhr.responseText);
+          }
+        });
+      });
+      
+      /**
+       Toma los cambios en los campos de observaciones y los guarda en la declaración
+      */
+      $("#observaciones_guardar").click(function(e){
+        var formulario = $("#observaciones_form");
+        var modal_observaciones = $("#observaciones-modal");
+        var modal_div =  modal_observaciones.find("#accordionExample");
+        var btn_guardar = $(this)
+        var data = {
+          csrfmiddlewaretoken: '{{ csrf_token }}',
+          declaracion: null,
+          campos: []
+        }
+
+        formulario.submit(function(e){
+          e.preventDefault();
+          e.stopPropagation();
+
+          $.each($(this).serializeArray(), function(i, field) {
+            var arr_name = field.name.split("_");
+
+            if(arr_name[0] == "declaracion"){
+              data["declaracion"] = field.value;
+            }else{
+              data["campos"].push({id: arr_name[1], observacion: field.value, seccion: arr_name[0]});
+            }
+          });
+
+          data["campos"] = JSON.stringify(data["campos"])
+
+          modal_div.html("");
+          modal_div.html("<div class=\"text-center\"><div class=\"spinner-border text-success\" role=\"status\" style=\"width: 3rem; height: 3rem;\">"+
+              "<span class=\"sr-only\">Loading...</span>"+
+            "</div></div>");
+
+          $.ajax({
+            url : "{% url 'observaciones-finales-guardar' %}",
+            data: data,
+            type : "POST",
+            success : function(response) {
+              modal_div.html("");
+              modal_div.html('<span style="font-size: larger;font-weight: 800;color: green;">'+response["mensaje"] + "&#x2713;</span>")
+              btn_guardar.attr("disabled", true);
+
+              setTimeout(function(){
+                window.location.reload();
+              }, 800);
+            },
+            error : function(xhr,errmsg,err) {
+              console.log(xhr.status + ": " + xhr.responseText);
+            }
+          });
+        });
+      });
+
+
+    $(".a_declaracion_sin_pdf").click(function(e){
+      var id_declaracion = $(this).attr("declaracion");
+      var estatus_declaracion = $(this).attr("estatus_declaracion");
+      var cierre_declaracion = $(this).attr("cierre_declaracion");
+      var div_mensajes = $("#div_mensajes_vista_previa");
+
+      if(cierre_declaracion && cierre_declaracion == "True"){
+        div_mensajes.append('<div class="alert alert-success alert-dismissable alert-link">'+
+                    '<button type="button" class="close" data-dismiss="alert">&times;</button>'+
+                          '<strong>Su archivo PDF se esta generando, espere por favor</strong>'+
+                    '</div>')
+      }
+      else{
+        var td_btn_pdf = $(this).parent();
+        var data = {
+          "declaracion": $(this).attr("declaracion")
+        }
+        console.log(data)
+        $.ajax({
+            url : "{% url 'crear_pdf_declaracion' %}",
+            data: data,
+            type : "GET",
+            success : function(response) {      
+              var estatus_actual = response["estatus_proceso"] == "None" || !response["estatus_proceso"] ? 10 : response["estatus_proceso"]
+              
+              td_btn_pdf.empty();
+              td_btn_pdf.append('<div class="progress" style="width: 100%; height: 40px;">'+
+                  '<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="'+estatus_actual+'"'+
+                  'aria-valuemin="0" aria-valuemax="100" style="width:'+estatus_actual+'%">'+estatus_actual+'%</div></div>');
+              
+              if(estatus_actual && estatus_actual != 100){
+                ajax_consulta_estaus_pdf(data, td_btn_pdf);
+              }
+
+            },
+            error : function(xhr,errmsg,err) {
+              console.log(xhr.status + ": " + xhr.responseText);
+            }
+        });
+      }
+    });
+    
+  </script>
+{% endblock %}

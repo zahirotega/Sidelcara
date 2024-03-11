@@ -1,0 +1,8 @@
+Proceso para inicializar funcionalidad de entidad múltiple
+
+1.- Descargar actualización
+2.- Borrar datos de la tabla CatEntesPublicos desde el admin
+3.- Correr el comando sudo docker exec -it declaraciones_django python manage.py loaddata CatEntesPublicos.json
+4.- Correr el comando sudo docker exec -it declaraciones django python asignarInstitucion.py
+5.- Ajustar el nombre del ente en el catálogo CatEntesPublicos (Ya debe tener solo un registro default)
+6.- En caso de contar con más de una institución se deberá entrar a cada uno de los usuarios en InfoPersonalFija para ajustar la entidad correspondiente

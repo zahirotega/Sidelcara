@@ -1,0 +1,28 @@
+{% load static %}
+{% load anterior_siguiente %}
+{% anterior_siguiente as urls %}
+{% load secciones %}
+
+<div class="row mt-6">
+    <div class="col-2">
+      {% if puesto > limit_simp %}
+        {% if urls.anterior %}
+          <a href="{{ urls.anterior }}" class="btn btn-link btn-link-gray text-uppercase font-weight-bold">
+              <img src="{% static 'src/img/arrow.svg'%}" class="svg turned"> Anterior
+          </a>
+        {% endif %}
+      {% endif %}
+    </div>
+    <div class="col-8 text-center">
+      <button id="id-guardarysalir"  value="guardar_salir"  name="accion"  class="btn btn-primary mr-3 text-uppercase font-weight-bold {% if urls.sig == ''%}block_boton{% endif %} guardarDeclaracion">Guardar</button>
+      <input id="id-guardarycotinuar" type="submit" value="Guardar y continuar" class="btn btn-outline-primary text-uppercase font-weight-bold {% if urls.sig == 'direccion' %}block_boton{% endif %} guardarDeclaracion" >
+    </div>
+    <div class="col-2 text-right">
+      {% if puesto > limit_simp %}
+        {% if urls.siguiente %}
+          <a href="{{ urls.siguiente }}" class="btn btn-link btn-link-gray text-uppercase font-weight-bold">
+            Siguiente <img src="{% static 'src/img/arrow.svg'%}" class="svg"></a>
+        {% endif %}
+      {% endif %}
+    </div>
+</div>

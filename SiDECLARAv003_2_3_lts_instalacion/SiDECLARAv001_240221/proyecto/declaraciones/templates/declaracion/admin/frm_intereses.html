@@ -1,0 +1,623 @@
+{% load humanize %}
+{% load no_aplica %}
+{% load static %}
+
+<div class="row">
+  <ol type="I" class="row">
+    <li class="col-12">
+      <h4 class="text-base text-uppercase text-success-lighter mb-25">
+        PARTICIPACION EN EMPRESAS, SOCIEDADES O ASOCIACIONES(HASTA LOS ULTIMOS 2 AÑOS)
+      </h4>
+      <div class="row">
+        {% no_aplica declaracion.folio 'socios-comerciales' as checked_socioscomerciales %}
+        {% if not checked_socioscomerciales %}
+        {% for socio in socios %}
+      <div class="col-6 row">
+        <h6> SOCIO # {{ forloop.counter }}</h6>
+        <dl class="p_opciones col-12">
+          <dt>Tipo de relación</dt>
+          <dd class="text-black_opciones">{{ socio.tipoRelacion|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Nombre de la actividad comercial vinculante</dt>
+          <dd class="text-black_opciones">{{ socio.actividad_vinculante|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>RFC de la entidad vinculante</dt>
+          <dd class="text-black_opciones">{{ socio.rfc_entidad_vinculante|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Porcentaje participación</dt>
+          <dd class="text-black_opciones">{{ socio.porcentaje_participacion|default_if_none:"" }} %</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Recibe remuneración</dt>
+          <dd class="text-black_opciones">
+            {% if socio.recibeRemuneracion == False %} No
+              {% else %} Sí
+                <dl class="p_opciones col-12">
+                  <dt class="color-secundario font-italic">Monto mensual</dt>
+                  <dd class="text-black_opciones">$ {{ socio.montoMensual|intcomma|default_if_none:"No registrado" }}</dd>
+                </dl>
+                <dl class="p_opciones col-12">
+                  <dt class="color-secundario font-italic">Moneda</dt>
+                  <dd class="text-black_opciones">{{ socio.moneda|default_if_none:"No registrado" }}</dd>
+                </dl>
+            {% endif %}
+          </dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Tipo participación</dt>
+          <dd class="text-black_opciones">{{ socio.tipoParticipacion|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+            <dt>Lugar donde se ubica:</dt>
+            <dl class="p_opciones col-12">
+              <dt>País</dt>
+              <dd class="text-black_opciones">{{ socio.socio_infopersonalvar.cat_pais|default_if_none:"" }}</dd>
+            </dl>
+            <dl class="p_opciones col-12">
+              <dt>Entidad federativa</dt>
+              <dd class="text-black_opciones">{{ socio.socio_infopersonalvar.cat_entidades_federativas|default_if_none:"" }}</dd>
+            </dl>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Sector/industria</dt>
+          <dd class="text-black_opciones">{{ socio.socio_infopersonalvar.sectores_industrias|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>ACLARACIONES/OBSERVACIONES</dt>
+          <dd class="text-black_opciones">{{ socio.observaciones|default_if_none:"" }}</dd>
+        </dl>
+      </div>
+        {% endfor %}
+        {% else %}
+        <h6 class="color-primario">( NO APLICA )</h6>
+        {% endif %}
+      </div>
+    </li>
+
+    <li class="col-12">
+      <h4 class="text-base text-uppercase text-success-lighter mb-25">
+        ¿PARTICIPA EN LA TOMA DE DECISIONES DE ALGUNA DE ESTAS INSTITUCIONES ? (HASTA LOS 2 ÚLTIMOS AÑOS) 
+      </h4>
+      <div class="row"> 
+        {% no_aplica declaracion.folio 'membresias' as checked_membresias %}
+        {% if not checked_membresias %}
+        {% for membresia in membresias %}
+        <div class="col-6 row">
+        <h6> MEMBRESIA # {{ forloop.counter }}</h6>
+        <dl class="p_opciones col-12">
+          <dt>Tipo de operación</dt>
+          <dd class="text-black_opciones">{{ membresia.cat_tipos_operaciones|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Relación</dt>
+          <dd class="text-black_opciones">{{ membresia.tipoRelacion|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Tipo de institución</dt>
+          <dd class="text-black_opciones">{{ membresia.tipos_instituciones|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Nombre de la institución</dt>
+          <dd class="text-black_opciones">{{ membresia.nombre_institucion|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>RFC de la institución</dt>
+          <dd class="text-black_opciones">{{ membresia.rfc|default_if_none:"" }}</dd>
+        </dl>
+        
+        <dl class="p_opciones col-12">
+          <dt>Puesto/rol</dt>
+          <dd class="text-black_opciones">{{ membresia.puesto_rol|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Fecha de inicio</dt>
+          <dd class="text-black_opciones">{{ membresia.fecha_inicio|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Recibe remuneración</dt>
+          <dd class="text-black_opciones">
+            {% if membresia.pagado == False %} No
+              {% else %} Sí
+                <dl class="p_opciones col-12">
+                  <dt>Monto mensual</dt>
+                  <dd class="text-black_opciones">{{ membresia.monto|default_if_none:"No registrado" }}</dd>
+                </dl>
+                <dl class="p_opciones col-12">
+                  <dt>Moneda</dt>
+                  <dd class="text-black_opciones">{{ membresia.moneda|default_if_none:"No registrado" }}</dd>
+                </dl>
+            {% endif %}
+          </dd>
+        </dl>
+        <dl class="p_opciones col-12">
+            <dt>Lugar donde se ubica:</dt>
+            <dl class="p_opciones col-12">
+              <dt>País</dt>
+              <dd class="text-black_opciones">{{ membresia.domicilios.cat_pais|default_if_none:"" }}</dd>
+            </dl>
+            <dl class="p_opciones col-12">
+              <dt>Entidad federativa</dt>
+              <dd class="text-black_opciones">{{ membresia.domicilios.cat_entidades_federativas|default_if_none:"No aplica" }}</dd>
+            </dl>
+        </dl>
+        
+        <dl class="p_opciones col-12">
+          <dt>ACLARACIONES/OBSERVACIONES</dt>
+          <dd class="text-black_opciones">{{ membresia.observaciones|default_if_none:"" }}</dd>
+        </dl>
+                  </div>
+        {% endfor %}
+        {% else %}
+        <h6 class="color-primario">( NO APLICA )</h6>
+        {% endif %}
+
+      </div>
+    </li>
+
+    <li class="col-12">
+      <h4 class="text-base text-uppercase text-success-lighter mb-25">
+        APOYOS O BENEFICIOS PÚBLICOS (HASTA LOS 2 ÚLTIMOS AÑOS)
+      </h4>
+      <div class="row">
+        {% no_aplica declaracion.folio 'apoyos' as checked_apoyos %}
+        {% if not checked_apoyos %}
+        {% for apoyo in apoyos %} 
+        <div class="col-6 row"> 
+        <h6> APOYO # {{ forloop.counter }}</h6>
+
+        <dl class="p_opciones col-12">
+          <dt>Beneficiario del programa</dt>
+          <dd class="text-black_opciones">{{ apoyo.cat_tipos_relaciones_personales|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Nombre del programa público</dt>
+          <dd class="text-black_opciones">{{ apoyo.nombre_programa|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Institución que otorga el apoyo</dt>
+          <dd class="text-black_opciones">{{ apoyo.institucion_otorgante|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Nivel/orden de gobierno</dt>
+          <dd class="text-black_opciones">{{ apoyo.cat_ordenes_gobierno|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Tipo de apoyo</dt>
+          <dd class="text-black_opciones">{{ apoyo.cat_tipos_apoyos|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Forma de recepción</dt>
+          <dd class="text-black_opciones">{{ apoyo.forma_recepcion|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Valor anual del apoyo</dt>
+          <dd class="text-black_opciones">$ {{ apoyo.monto_apoyo_mensual|intcomma|default_if_none:"No registrado" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Moneda</dt>
+          <dd class="text-black_opciones">{{ apoyo.moneda|default_if_none:"No registrado" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Especifique apoyo</dt>
+          <dd class="text-black_opciones">{{ apoyo.especifiqueApoyo|default_if_none:"" }}</dd>
+        </dl>
+        <dl class="p_opciones col-12">
+          <dt>Observaciones</dt>
+          <dd class="text-black_opciones">{{ apoyo.observaciones|default_if_none:"" }}</dd>
+        </dl>
+    </div>
+        {% endfor %}
+        {% else %}
+        <h6 class="color-primario">( NO APLICA )</h6>
+        {% endif %}
+      </div>
+    </li>
+
+    <li class="col-12">
+      <h4 class="text-base text-uppercase text-success-lighter mb-25">
+        REPRESENTACIÓN (HASTA LOS 2 ÚLTIMOS AÑOS)
+      </h4>
+      <div class="row">
+        {% no_aplica declaracion.folio 'representacion-activa' as checked_representacionactiva %}
+        {% if not checked_representacionactiva %}
+        {% for representacion in activas %}
+        <div class="col-6">
+          <h6> Representación # {{ forloop.counter }}</h6>
+          <dl class="p_opciones col-12">
+            <dt>Tipo de relación</dt>
+            <dd class="text-black_opciones">{{ representacion.cat_tipos_relaciones_personales|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Tipo de representación</dt>
+            <dd class="text-black_opciones">{{ representacion.cat_tipos_representaciones|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Fecha de inicio de la representación</dt>
+            <dd class="text-black_opciones">{{ representacion.fecha_inicio|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Representante/Representado</dt>
+            <dd class="text-black_opciones">{% if representacion.info_personal_var.es_fisica == False %}Moral{% else %}Fisca{%endif%}</dd>
+          </dl>
+          {% if representacion.info_personal_var.es_fisica == False %}
+            <dl class="p_opciones col-12">
+              <dt>Razón social</dt>
+              <dd class="text-black_opciones"> {{representacion.info_personal_var.razon_social|default_if_none:"" }} </dd>
+            </dl>
+            {% else %}
+            <dl class="p_opciones col-12">
+              <dt>Nombre completo de la persona Fisica</dt>
+              <dd class="text-black_opciones"> {{representacion.info_personal_var.nombre_completo|default_if_none:"" }} </dd>
+            </dl>
+          {%endif%}
+          <dl class="p_opciones col-12">
+            <dt>RFC</dt>
+            <dd class="text-black_opciones">{{ representacion.info_personal_var.rfc|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>¿Recibe remuneración?</dt>
+            <dd class="text-black_opciones">{% if representacion.pagado == False %}No{% else %}Si{%endif%}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Monto mensual ento de su representación</dt>
+            <dd class="text-black_opciones">$ {{ representacion.monto|intcomma|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Moneda</dt>
+            <dd class="text-black_opciones">{{ representacion.cat_moneda|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Lugar donde se ubica</dt>
+            <dd class="text-black_opciones">{{ representacion.info_personal_var.cat_pais|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Entidad federativa</dt>
+            <dd class="text-black_opciones">{{ representacion.info_personal_var.cat_entidades_federativas|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Sector productivo al que pertenece</dt>
+            <dd class="text-black_opciones">{{ representacion.info_personal_var.cat_sectores_industria|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Aclaraciones/Observaciones</dt>
+            <dd class="text-black_opciones">{{ representacion.observaciones|default_if_none:"" }}</dd>
+          </dl>
+      </div>
+        {% endfor %}
+        {% else %}
+        <h6 class="color-primario">( NO APLICA )</h6>
+        {% endif %}
+      </div>
+    </li>
+
+    <li class="col-12">
+      <h4 class="text-base text-uppercase text-success-lighter mb-25">
+        CLIENTES PRINCIPALES (HASTA LOS 2 ÚLTIMOS AÑOS)
+      </h4>
+      <div class="row">
+        {% no_aplica declaracion.folio 'clientes-principales' as checked_clientesprincipales %}
+        {% if not checked_clientesprincipales %}
+        {% for cliente in clientes %}
+        <div class="ol-6 row">
+          <h6> Cliente principal # {{ forloop.counter }}</h6>
+          <dl class="p_opciones col-12">
+            <dt>¿Realiza alguna actividad lucrativa independiente al empleo, cargo o comisión?</dt>
+            <dd class="text-black_opciones">{% if cliente.realizaActividadLucrativa == False %}No{% else %}Si{% endif %}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Tipo de relación</dt>
+            <dd class="text-black_opciones">{{cliente.cat_tipos_relaciones_personales|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Nombre de la empresa o servicio que proporciona</dt>
+            <dd class="text-black_opciones">{{cliente.info_personal_var.nombre_negocio|default_if_none:""}}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>RFC empresa</dt>
+            <dd class="text-black_opciones">{{cliente.info_personal_var.rfc_negocio|default_if_none:""}}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Cliente principal</dt>
+            <dd class="text-black_opciones">{% if cliente.info_personal_var.es_fisica == False %}Moral{% else %}Fisca{%endif%}</dd>
+          </dl>
+          {% if cliente.info_personal_var.es_fisica == False %}
+            <dl class="p_opciones col-12">
+              <dt>Razón social</dt>
+              <dd class="text-black_opciones"> {{cliente.info_personal_var.razon_social|default_if_none:""}} </dd>
+            </dl>
+            {% else %}
+            <dl class="p_opciones col-12">
+              <dt>Nombre completo de la persona Fisica</dt>
+              <dd class="text-black_opciones"> {{cliente.info_personal_var.nombre_completo|default_if_none:""}} </dd>
+            </dl>
+          {%endif%}
+          <dl class="p_opciones col-12">
+            <dt>RFC</dt>
+            <dd class="text-black_opciones">{{ cliente.info_personal_var.rfc|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Sector productivo al que pertenece</dt>
+            <dd class="text-black_opciones">{{ cliente.info_personal_var.cat_sectores_industria|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Monto aproximado del beneficio o ganancia mensual que obtiene del cliente</dt>
+            <dd class="text-black_opciones">$ {{ cliente.monto|intcomma|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Moneda</dt>
+            <dd class="text-black_opciones">{{ cliente.moneda|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>País donde se encuentra el cliente principal</dt>
+            <dd class="text-black_opciones">{{ cliente.info_personal_var.domicilios.cat_pais|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Entidad federativa</dt>
+            <dd class="text-black_opciones">{{ cliente.info_personal_var.domicilios.cat_entidades_federativas|default_if_none:"" }}</dd>
+          </dl>
+          <dl class="p_opciones col-12">
+            <dt>Aclaraciones/Observaciones</dt>
+            <dd class="text-black_opciones">{{ cliente.observaciones|default_if_none:"" }}</dd>
+          </dl>
+      </div>
+        {% endfor %}
+        {% else %}
+        <h6 class="color-primario">( NO APLICA )</h6>
+        {% endif %}
+      </div>
+    </li>
+
+    <li class="col-12">
+      <h4 class="text-base text-uppercase text-success-lighter mb-25">
+        BENEFICIOS PRIVADOS (HASTA LOS 2 ÚLTIMOS AÑOS)
+      </h4>
+      <div class="row">
+        {% no_aplica declaracion.folio 'beneficios-gratuitos' as checked_beneficiosgratuitos %}
+        {% if not checked_beneficiosgratuitos %}
+        {% for beneficio in beneficios %}
+        <div class="col-6 row">
+            <h6> Beneficio # {{ forloop.counter }}</h6>
+            <dl class="p_opciones col-12">
+              <dt>Beneficiario</dt>
+              <dd class="text-black_opciones">{{ beneficio.cat_tipos_relaciones_personales|default_if_none:"" }}</dd>
+            </dl>
+            
+            <dl class="p_opciones col-12">
+              <dt>Tipo de operación</dt>
+              <dd class="text-black_opciones">{{ beneficio.cat_tipos_operaciones|default_if_none:"" }}</dd>
+            </dl>
+            <dl class="p_opciones col-12">
+              <dt>Tipo de beneficio</dt>
+              <dd class="text-black_opciones">{{ beneficio.cat_tipos_beneficios|default_if_none:"" }}</dd>
+            </dl>
+
+            <dl class="p_opciones col-12">
+              <dt>Otorgante</dt>
+              <dd class="text-black_opciones">{% if beneficio.otorgante_infopersonalVar.es_fisica == False %}Moral{% else %}Fisca{%endif%}</dd>
+            </dl>
+            {% if beneficio.otorgante_infopersonalVar.es_fisica == False %}
+              <dl class="p_opciones col-12">
+                <dt>Razón social</dt>
+                <dd class="text-black_opciones"> {{beneficio.otorgante_infopersonalVar.razon_social|default_if_none:""}} </dd>
+              </dl>
+              {% else %}
+              <dl class="p_opciones col-12">
+                <dt>Nombre completo de la persona Fisica</dt>
+                <dd class="text-black_opciones"> {{beneficio.otorgante_infopersonalVar.nombre_completo|default_if_none:""}} </dd>
+              </dl>
+            {%endif%}
+            <dl class="p_opciones col-12">
+              <dt>RFC</dt>
+              <dd class="text-black_opciones">{{ beneficio.otorgante_infopersonalVar.rfc|default_if_none:"" }}</dd>
+            </dl>
+            <dl class="p_opciones col-12">
+              <dt>Forma de recepción del beneficio</dt>
+              <dd class="text-black_opciones">{{ beneficio.forma_recepcion|default_if_none:"" }}</dd>
+            </dl>
+            <dl class="p_opciones col-12">
+              <dt>Especifique el beneficio</dt>
+              <dd class="text-black_opciones">{{ beneficio.especifiqueBeneficio|default_if_none:"" }}</dd>
+            </dl>
+            <dl class="p_opciones col-12">
+              <dt>Monto mensual aproximado del beneficio</dt>
+              <dd class="text-black_opciones">$ {{ beneficio.valor_beneficio|intcomma|default_if_none:"" }}</dd>
+            </dl>
+            <dl class="p_opciones col-12">
+              <dt>Moneda</dt>
+              <dd class="text-black_opciones">{{ beneficio.moneda|default_if_none:"" }}</dd>
+            </dl>
+            <dl class="p_opciones col-12">
+              <dt>Sector productivo al que pertenece</dt>
+              <dd class="text-black_opciones">{{ beneficio.cat_sectores_industria|default_if_none:"" }}</dd>
+            </dl>
+            <dl class="p_opciones col-12">
+              <dt>Aclaraciones/Observaciones</dt>
+              <dd class="text-black_opciones">{{ beneficio.observaciones|default_if_none:"" }}</dd>
+            </dl>
+        </div>
+        {% endfor %}
+        {% else %}
+        <h6 class="color-primario"> ( NO APLICA ) </h6>
+        {% endif %}
+      </div>
+    </li>
+
+    <li class="col-12">
+      <h4 class="text-base text-uppercase text-success-lighter mb-25">
+        FIDEICOMISOS (HASTA LOS 2 ÚLTIMOS AÑOS)
+      </h4>
+      <div class="row">
+        {% no_aplica declaracion.folio 'fideicomisos' as checked_fideicomisos %}
+        {% if not checked_fideicomisos %}
+        {% for fideicomiso in fideicomisos %}
+
+        <div class="col-6 row">
+            <h4 class="h4 text-uppercase font-weight-bold">Fideicomiso {{ forloop.counter }} -----------------------</h4>
+            <dl class="p_opciones col-12">
+              <dt>Tipo de operación</dt>
+              <dd class="text-black_opciones">{{ fideicomiso.cat_tipos_operaciones|default_if_none:"" }}</dd>
+            </dl>
+
+            <dl class="p_opciones col-12">
+              <dt>Participación en fideicomisos</dt>
+              <dd class="text-black_opciones">{{ fideicomiso.tipo_relacion|default_if_none:"" }}</dd>
+            </dl>
+
+            <dl class="p_opciones col-12">
+              <dt>Tipo de fideicomiso </dt>
+              <dd class="text-black_opciones">{{ fideicomiso.cat_tipos_fideicomisos|default_if_none:"" }}</dd>
+            </dl>
+
+            <dl class="p_opciones col-12">
+              <dt>Tipo de participación </dt>
+              <dd class="text-black_opciones">{{ fideicomiso.cat_tipo_participacion|default_if_none:"" }}</dd>
+            </dl>
+
+            <dl class="p_opciones col-12">
+              <dt>Fideicomiso - RFC  </dt>
+              <dd class="text-black_opciones">{{ fideicomiso.rfc|default_if_none:"" }}</dd>
+            </dl>
+
+            <!--      FIDEICOMITENTE      -->
+            ***<br>
+            <h5>Fideicomitente</h5>
+            <dl class="p_opciones col-12">
+                <dt>Tipo de persona </dt>
+                <dd class="text-black_opciones">
+                  {% if fideicomiso.fideicomitente.otra_persona.es_fisica %}
+                  Física 
+                  {% elif not fideicomiso.fideicomitente.otra_persona.es_fisica %}
+                  Moral
+                  {% else %}
+                  --
+                  {% endif %}
+                </dd>
+            </dl>
+
+            {% if fideicomiso.fideicomitente.otra_persona.es_fisica %}
+              <dl class="p_opciones col-12">
+                <dt> Nombre(s)  </dt>
+                <dd class="text-black_opciones">{{ fideicomiso.fideicomitente.otra_persona.nombres|default_if_none:"" }}</dd>
+              </dl>
+
+              <dl class="p_opciones col-12">
+                <dt> Apellidos  </dt>
+                <dd class="text-black_opciones">{{ fideicomiso.fideicomitente.otra_persona.apellido1|default_if_none:"" }} {{ fideicomiso.fideicomitente.otra_persona.apellido2|default_if_none:"" }}</dd>
+              </dl>
+            {% else %}
+
+              <dl class="p_opciones col-12">
+                <dt> Razón social  </dt>
+                <dd class="text-black_opciones">{{ fideicomiso.fideicomitente.otra_persona.razon_social|default_if_none:"" }}</dd>
+              </dl>
+
+            {% endif %}
+            <dl class="p_opciones col-12">
+              <dt> RFC  </dt>
+              <dd class="text-black_opciones">{{ fideicomiso.fideicomitente.otra_persona.rfc|default_if_none:"" }}</dd>
+            </dl>
+          
+          <!--     FIDUCARIO      -->
+          ***<br>
+          <h5>Fiduciario</h5>
+          <dl class="p_opciones col-12">
+              <dt> Tipo de persona </dt>
+              <dd class="text-black_opciones">
+                {% if fideicomiso.fiduciario.otra_persona.es_fisica %}
+                Física 
+                {% elif not fideicomiso.fiduciario.otra_persona.es_fisica %}
+                Moral
+                {% else %}
+                --
+                {% endif %}
+              </dd>
+          </dl>
+
+          {% if fideicomiso.fiduciario.otra_persona.es_fisica %}
+            <dl class="p_opciones col-12">
+              <dt> Nombre(s)  </dt>
+              <dd class="text-black_opciones">{{ fideicomiso.fiduciario.otra_persona.nombres|default_if_none:"" }}</dd>
+            </dl>
+
+            <dl class="p_opciones col-12">
+              <dt> Apellidos  </dt>
+              <dd class="text-black_opciones">{{ fideicomiso.fiduciario.otra_persona.apellido1|default_if_none:"" }} {{ fideicomiso.fiduciario.otra_persona.apellido2|default_if_none:"" }}</dd>
+            </dl>
+          {% else%}
+            <dl class="p_opciones col-12">
+              <dt> Razón social  </dt>
+              <dd class="text-black_opciones">{{ fideicomiso.fiduciario.otra_persona.razon_social|default_if_none:"" }}</dd>
+            </dl>
+          {% endif %}
+
+          <dl class="p_opciones col-12">
+            <dt> RFC  </dt>
+            <dd class="text-black_opciones">{{ fideicomiso.fiduciario.otra_persona.rfc|default_if_none:"" }}</dd>
+          </dl>
+              
+          <!--      FIDEICOMISARIO      -->
+          ***<br>
+          <h5>Fideicomisario</h5>
+          <dl class="p_opciones col-12">
+              <dt> Tipo de persona </dt>
+              <dd class="text-black_opciones">
+                {% if fideicomiso.fideicomisario.otra_persona.es_fisica %}
+                Física 
+                {% elif not fideicomiso.fideicomisario.otra_persona.es_fisica %}
+                Moral
+                {% else %}
+                --
+                {% endif %}
+              </dd>
+          </dl>
+
+          {% if fideicomiso.fideicomisario.otra_persona.es_fisica %}
+            <dl class="p_opciones col-12">
+              <dt> Nombre(s)  </dt>
+              <dd class="text-black_opciones">{{ fideicomiso.fideicomisario.otra_persona.nombres|default_if_none:"" }}</dd>
+            </dl>
+
+            <dl class="p_opciones col-12">
+              <dt> Apellidos  </dt>
+              <dd class="text-black_opciones">{{ fideicomiso.fideicomisario.otra_persona.apellido1|default_if_none:"" }} {{ fideicomiso.fideicomisario.otra_persona.apellido2|default_if_none:"" }}</dd>
+            </dl>
+          {% else%}
+            <dl class="p_opciones col-12">
+              <dt> Razón social  </dt>
+              <dd class="text-black_opciones">{{ fideicomiso.fideicomisario.otra_persona.razon_social|default_if_none:"" }}</dd>
+            </dl>
+          {% endif %}
+
+          <dl class="p_opciones col-12">
+            <dt> RFC  </dt>
+            <dd class="text-black_opciones">{{ fideicomiso.fideicomisario.otra_persona.rfc|default_if_none:"" }}</dd>
+          </dl>
+
+
+          <dl class="p_opciones col-12">
+            <dt> Sector productivo al que pertenece </dt>
+            <dd class="text-black_opciones">{{ fideicomiso.cat_sectores_industria|default_if_none:"" }} </dd>
+          </dl>
+
+          <dl class="p_opciones col-12">
+            <dt> ¿Dónde se localiza el fideicomiso? </dt>
+            <dd class="text-black_opciones">{{ fideicomiso.cat_paises|default_if_none:"" }} </dd>
+          </dl>
+
+            <dl class="p_opciones col-12">
+              <dt>Aclaraciones/Observaciones</dt>
+              <dd class="text-black_opciones">{{ fideicomiso.observaciones|default_if_none:"" }}</dd>
+            </dl>
+
+          </div>
+        {% endfor %}
+        {% else %}
+        <h6 class="color-primario">( NO APLICA )</h6>
+        {% endif %}
+      </div>
+    </li>
+  </ol>
+</div>

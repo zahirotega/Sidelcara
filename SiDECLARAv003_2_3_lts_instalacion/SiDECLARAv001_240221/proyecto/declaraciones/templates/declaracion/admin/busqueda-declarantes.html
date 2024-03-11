@@ -1,0 +1,429 @@
+{% extends "layout/base.html" %}
+{% load static %}
+{% block header_title %}Buscar declarantes{% endblock %}
+{% load bootstrap4 %}
+
+{% block header_style %}
+<head>
+      <meta charset="utf-8">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css" crossorigin="anonymous"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css" crossorigin="anonymous"> 
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css" crossorigin="anonymous"> 
+    </head>
+{% endblock %}
+
+{% block content %}
+<section class="container body_content" style="max-width: 1500px;">
+  <form action="{% url 'declaracion:busqueda-declarantes' %}" method="post" id="form">
+    <div class="row row-md ">
+      <div class="col-sm-12 col-md-8">
+        <h1 class="text-gray text-xl font-weight-medium text-uppercase mt-5 line-height-md title-mobile text-mobile">
+          <span class="text-primary-light font-weight-semibold">DECLARANTES</span> 
+          Búsqueda
+        </h1>
+      </div>
+      {% if msg and not editar %}
+        <div class="alert alert-success" role="alert">
+          <h4 class="alert-heading">¡Se han registrado el declarante!</h4>
+          <p>{{email_result}}</p>
+          <hr>
+        </div>
+      {% endif %}
+      {% if editar %}
+        <div class="alert alert-success col-md-8" role="alert">
+          <h4 class="alert-heading">¡Se han guardado los cambios del declarante <i>{{ infopersonalfija.rfc }}</i>!</h4>
+          <p>La actualización de datos se ha realizado con éxito.</p>
+          <hr>
+        </div>
+      {% endif %}
+      {% if user.is_superuser %}
+        <div class="col-sm-12 col-md-4 mt-4">
+          <a href="{% url 'declaracion:nuevo-usuario-declarante' %}" class="btn bgCVerdeSeco btn-success btn-block btn-lg font-weight-semibold" style="width: 90%;"> 
+            Crear declarante <img src="{% static 'src/img/group.svg' %}">
+          </a>
+        </div>
+      {% endif %}
+    </div>
+    <div class="row row-md ">
+      <div class="d-flex justify-content-center align-items-center flex-column flex-sm-row bg-gray p-4 rounded">
+        {% csrf_token %}
+        {% bootstrap_field form.page  show_label=False%}
+        <div class="row">
+          <div class="col-sm-12 col-md-6 col-lg-4 col-xl-4">
+              {% bootstrap_field form.nombre field_class="solo_letras"  %}
+          </div>
+          <div class="col-sm-12 col-md-6 col-lg-4 col-xl-4">
+              {% bootstrap_field form.apellido1 field_class="solo_letras" %}
+          </div>
+          <div class="col-sm-12 col-md-6 col-lg-4 col-xl-4">
+              {% bootstrap_field form.rfc_search %}
+          </div>
+          <div class="col-sm-12 col-md-6 col-lg-4 col-xl-4">
+            {% bootstrap_field form.estatus %}
+          </div>
+          <div class="col-sm-12 col-md-6 col-lg-4 col-xl-4">
+            {% bootstrap_field form.tipo_registro %}
+          </div>
+          <input type="hidden" id="tipo_registro" value="registrado">
+          <div class="col-12"></div>
+          <div class="col-sm-12 col-md-8 col-lg-6 col-xl-6">
+            {% bootstrap_field form.fecha_inicio %}
+          </div>
+          <div class="col-sm-12 col-md-8 col-lg-6 col-xl-6">
+            {% bootstrap_field form.fecha_fin %}
+          </div>
+          <div class="col-sm-12 col-md-6 col-lg-4 col-xl-4 ">
+            <button class="btn btn-success text-uppercase font-weight-semibold mt-5" type="button" onclick="ajax_consultar_pagina()">
+              Buscar <img src="{% static 'src/img/busqueda.svg' %}"/>
+            </button>
+            <input class="btn btn-success text-uppercase font-weight-semibold mt-5" type="reset" value="Limpiar">
+          </div>
+          <div class="col-sm-12 col-md-6 col-lg-4 col-xl-4 ">
+            <input id="excelButton" class="btn btn-success text-uppercase font-weight-bold mt-5" name="data" value="Descargar Excel" type="button" onclick="ajax_consulta_excel_declarantes()" disabled="true">
+          </div>
+          <div class="col-sm-12 col-md-6 col-lg-4 col-xl-4 ">
+            <p>Cantidad de registros:</p>
+            <select  class="form-select" id="id_page_size" onchange="ajax_consultar_pagina()">
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  <div id="result_table_excel" style="display: none;">
+    <div class="row row-md">
+      <table class="table table-striped" id="testTabl_excel">
+        <thead>
+          <tr>
+            <th scope="col">NOMBRE</th>
+            <th scope="col">{% if tipo_registro == 'registrado'  %} F.INGRESO{% else %} F.REGISTRO {% endif %}</th>
+            <th scope="col">RFC</th>
+            <th scope="col">ESTATUS</th>
+            
+          </tr>
+        </thead>
+        <tbody id="result_tbody_excel">
+        
+        </tbody>
+        <tfoot>
+          <tr>
+              
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+<div id="result_table" style="display: none;">
+  <div class="row row-md">
+    <table class="table table-striped" id="testTabl">
+      <thead>
+        <tr>
+          <th scope="col">NOMBRE</th>
+          <th scope="col">{% if tipo_registro == 'registrado'  %} F.INGRESO{% else %} F.REGISTRO {% endif %}</th>
+          <th scope="col">RFC</th>
+          <th scope="col">ESTATUS</th>
+          <th scope="col">VER</th>
+          {% if user.is_superuser %}
+          <th scope="col">EDITAR</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody id="result_tbody">
+      
+      </tbody>
+      <tfoot>
+        <tr>
+            
+        </tr>
+      </tfoot>
+    </table>
+    <div class="col-12" style="text-align:right;">
+      <p id="total_registros"></p>
+    </div>
+  </div>
+</div>
+<div class="row row-md text-center">
+  <div class="col-12">
+    <nav aria-label="Páginas" class="nav d-flex justify-content-center">
+      <ul class="pagination flex-wrap" id="paginacion">
+      </ul>
+    </nav>
+    <p id="total_rows"></p>
+  </div>
+</div>
+</section>
+
+  
+<div class="modal fade" id="buscandoDeclarante" data-backdrop="static"  tabindex="-1" role="dialog" aria-labelledby="agregarExpedienteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="border-bottom: 1px solid #d9d9d9;">
+        <center><h5 class="modal-title" id="busquedaDeclaranteLabel">Buscando... Espere, por favor.</h5></center>
+      </div>
+      <div class="modal-body" id="busquedaDeclaranteBody">
+        <h1 style="text-align:center;" class="h1ModalSucces" id="spinner">
+          <div class="lds-spinner">
+            <div></div><div></div><div></div><div></div><div></div><div></div>
+            <div></div><div></div><div></div><div></div><div></div><div></div>
+          </div>
+        </h1>
+        <div class="row form_downloadName" style="display: none;">  <!-- ZZOG-->
+          <div class="col-12">
+            <input type="text" class="form-control" id="id_downloadName">
+            <small id="danger_downloadName" hidden style="color:#dc3545;">El nombre no puede estar vacío</small>
+          </div>
+          <div class="col-12">
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer form_downloadName" style="display: none;">
+        <button type="button" class="btn btn-secondary mb-3" data-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary mb-3" onclick="submitDownloadName()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block body_script %}
+
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.2/js/jquery.dataTables.min.js" ></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.2/js/dataTables.bootstrap5.min.js"></script>
+
+
+
+<script type="text/javascript">
+
+
+$("form").submit(function(e){
+  $("#buscandoDeclarante").modal("show");
+});
+
+
+function ajax_consultar_pagina(page=1){
+  $("#buscandoDeclarante").modal("show");
+  $('#result_tbody').empty()
+  $('#paginacion').empty()
+  $('#total_rows').text('')
+  $('#total_registros').text('')
+  
+  $('.form-check-input').each(function(){
+    if($(this).prop('checked')){
+      tipo_registro=$(this).val()
+    }
+  }); 
+
+  
+  $('#id_page').val(page)
+  page_size=$("#id_page_size").val()
+  nombre=$("#id_nombre").val()
+  apellido1=$("#id_apellido1").val()
+  rfc=$("#id_rfc_search").val()
+  estatus=$("#id_estatus").val()
+  fecha_inicio_year=$("#id_fecha_inicio_year").val()
+  fecha_inicio_month=$("#id_fecha_inicio_month").val()
+  fecha_inicio_day=$("#id_fecha_inicio_day").val()
+  fecha_fin_day=$("#id_fecha_fin_day").val()
+  fecha_fin_month=$("#id_fecha_fin_month").val()
+  fecha_fin_year=$("#id_fecha_fin_year").val()
+
+  $.ajax({
+    method: "POST",
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    url: "{% url 'declaracion:consultarDeclarantesAjax' %}",
+    data: {
+        "page":page,
+        "page_size":page_size,
+        "nombre":nombre,
+        "apellido1":apellido1,
+        "rfc_search":rfc,
+        "estatus":estatus,
+        "tipo_registro":tipo_registro,
+        "fecha_inicio_year":fecha_inicio_year,
+        "fecha_inicio_month":fecha_inicio_month,
+        "fecha_inicio_day":fecha_inicio_day,
+        "fecha_fin_day":fecha_fin_day,
+        "fecha_fin_month":fecha_fin_month,
+        "fecha_fin_year":fecha_fin_year
+    },
+    success: function(response){
+      $('#result_table').show();
+      // Deshabilitar el botón
+      $('#excelButton').prop('disabled', false);
+      if(response.results.length > 0){
+        $.each(response.results, function( key, r ) {
+              
+          nombre = '<tr><td scope="row">' + r.nombre_completo + '</td>'
+          fecha = '<td>' + r.fecha +'</td>'
+          rfc = '<td>' + r.rfc +  '</td>'
+          estatus = '<td><span class="text-primary-light">'+ r.estatus +'</span></td>'
+          ver = '<td><a href="/declaracion/admin/info-declarante/'+r.pk+'/'+tipo_registro+'/"><img width="40px" src="/static/src/img/see_azul.png"></a></td>'
+          editar = '<td><a href="/declaracion/admin/editar-usuario-declarante/'+ r.pk+'/'+tipo_registro +'/"><img width="40px" src="/static/src/img/detalles_usuario_verde.png"></a></td></tr>'
+
+
+          registro = '<tr>' + nombre + fecha + rfc + estatus + ver + editar + '</tr>'
+        
+          $('#result_tbody').append(registro)
+        
+        });
+        paginacion = ''
+        first = ''
+        last = ''
+        antes = ''
+        current = ''
+        despues = ''
+
+        if(response.paginas){
+          $.each(response.paginas, function( key, pagina ) {
+            if(response.has_previous){
+              first = '<li class="page-item"><button class="page-link" type="button" onclick="ajax_consultar_pagina('+1+')">Primero</button></li>'
+            }
+            if(response.has_next){
+              last = '<li class="page-item"><button class="page-link" type="button" onclick="ajax_consultar_pagina('+response.total_pages+')">Último</button></li>'
+            }
+            permited_keys = response.current_page - 3
+            permited_keys2 = response.current_page + 2
+
+            if(key >= permited_keys && key < permited_keys2){
+
+              if(pagina < response.current_page){
+                antes += '<li class="page-item"><button class="page-link" type="button" onclick="ajax_consultar_pagina('+pagina+')">'+pagina+'</button></li>'
+
+              }else if(pagina > response.current_page){
+                despues += '<li class="page-item"><button class="page-link" type="button" onclick="ajax_consultar_pagina('+pagina+')">'+pagina+'</button></li>'
+              }
+              else{
+                current = '<li class="page-item"><button class="page-link bg-primary text-light" type="button">'+response.current_page+'</button></li>'
+              }
+            }
+          });
+        }
+
+        paginacion = first+antes+current+despues+last
+        $('#paginacion').append(paginacion)
+        $('#total_rows').text('Total de páginas: '+response.total_pages)
+        $('#total_registros').text('Total de registros: '+response.total_registros)
+        
+      }else{
+        no_registro = '<td colspan="6" style="text-align: center !important;background: #dddddd;"><h5 style="color: #000000;">No se encontraron registros que coincidan con su búsqueda</h5></td>'
+        $('#result_tbody').append(no_registro)
+
+      }
+  $("#buscandoDeclarante").modal("hide");
+
+    }
+  });  
+}
+
+            
+  
+
+  function tableToExcel(table, name, downloadName) {
+    var uri = 'data:application/vnd.ms-excel;base64,';
+    var template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><?xml version="1.0" encoding="UTF-8" standalone="yes"?><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>';
+    
+    var base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))); }
+    var format = function(s, c) { return s.replace(/{(\w+)}/g, function(m, p) { return c[p]; }); }
+    
+    if (!table.nodeType) table = document.getElementById(table);
+    var ctx = { worksheet: name || 'Worksheet', table: table.innerHTML };
+    
+    
+    
+    var link = document.createElement("a");
+    link.download = downloadName + ".xls";
+    link.href = uri + base64(format(template, ctx));
+    link.click();
+
+    $("#buscandoDeclarante").modal("hide");
+
+}
+$('#id_downloadName').on('input',function(){
+  $('#id_downloadName').removeClass('is-invalid')
+  $('#danger_downloadName').attr('hidden', true)
+
+})
+//consulta teable de excel al presionar boton
+function ajax_consulta_excel_declarantes(){
+  $('#id_downloadName').removeClass('is-invalid')
+    $('#id_downloadName').val('')
+    $('#danger_downloadName').attr('hidden', true)
+
+  $("#buscandoDeclarante").modal("show");
+  $('#result_tbody_excel').empty()
+
+  nombre=$("#id_nombre").val()
+  apellido1=$("#id_apellido1").val()
+  rfc=$("#id_rfc_search").val()
+  estatus=$("#id_estatus").val()
+  tipo_registro=$('#tipo_registro').val()
+  fecha_inicio_year=$("#id_fecha_inicio_year").val()
+  fecha_inicio_month=$("#id_fecha_inicio_month").val()
+  fecha_inicio_day=$("#id_fecha_inicio_day").val()
+  fecha_fin_day=$("#id_fecha_fin_day").val()
+  fecha_fin_month=$("#id_fecha_fin_month").val()
+  fecha_fin_year=$("#id_fecha_fin_year").val()
+
+  $.ajax({
+    method: "POST",
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    url: "{% url 'declaracion:consultarDeclarantesAjaxExcel' %}",//cambiar
+    data: {
+        
+        "nombre":nombre,
+        "apellido1":apellido1,
+        "rfc_search":rfc,
+        "estatus":estatus,
+        "tipo_registro":tipo_registro,
+        "fecha_inicio_year":fecha_inicio_year,
+        "fecha_inicio_month":fecha_inicio_month,
+        "fecha_inicio_day":fecha_inicio_day,
+        "fecha_fin_day":fecha_fin_day,
+        "fecha_fin_month":fecha_fin_month,
+        "fecha_fin_year":fecha_fin_year
+    },
+    success: function(response){
+      
+      $.each(response.results, function( key, r ) {
+            
+        nombre = '<tr><td scope="row">' + r.nombre_completo + '</td>'
+        fecha = '<td>' + r.fecha +'</td>'
+        rfc = '<td>' + r.rfc +  '</td>'
+        estatus = '<td><span class="text-primary-light">'+ r.estatus +'</span></td>'
+        
+        registro = '<tr>' + nombre + fecha + rfc + estatus  + '</tr>'
+      
+        $('#result_tbody_excel').append(registro)
+      
+      });
+      
+      $("#busquedaDeclaranteLabel").text("Ingrese el nombre del archivo");
+      $("#spinner").hide();
+      $(".form_downloadName").show();
+
+    }
+  });  
+}
+
+function submitDownloadName(){
+  downloadName = $('#id_downloadName').val()
+  if(downloadName.length <= 0){
+    $('#id_downloadName').addClass('is-invalid')
+    $('#danger_downloadName').removeAttr('hidden')
+
+  }
+  else{
+    tableToExcel('testTabl_excel', 'Declaraciones', downloadName); // Llama a la función que necesitas
+  }
+}
+</script>
+
+{% endblock %}
